@@ -86,7 +86,8 @@ void tledModelViewer::DisplayModel(void)
    
    //create mapper
    vtkSmartPointer<vtkDataSetMapper> mdlMapper = vtkSmartPointer<vtkDataSetMapper>::New();
-   mdlMapper->ImmediateModeRenderingOn();
+   // mdlMapper->ImmediateModeRenderingOn();
+   // mdlMapper->SetImmediateModeRendering(1);
    tledVTK6CompatSetInput(mdlMapper, mdlGrid);
       
    // create actor
@@ -107,7 +108,8 @@ void tledModelViewer::DisplayModel(void)
    {
       // create mappers
       cylMappers[cylNum] = vtkSmartPointer<vtkPolyDataMapper>::New();
-      cylMappers[cylNum]->ImmediateModeRenderingOn();
+      // cylMappers[cylNum]->ImmediateModeRenderingOn();
+      // cylMappers[cylNum]->SetImmediateModeRendering(1);
       cylMappers[cylNum]->SetResolveCoincidentTopology(1);
       tledVTK6CompatSetInput(cylMappers[cylNum], contactCylsPolyData[cylNum]);
       
@@ -131,7 +133,8 @@ void tledModelViewer::DisplayModel(void)
    {
       // create mappers
       prbMappers[prbNum] = vtkSmartPointer<vtkPolyDataMapper>::New();
-      prbMappers[prbNum]->ImmediateModeRenderingOn();
+      //prbMappers[prbNum]->ImmediateModeRenderingOn();
+      //prbMappers[prbNum]->SetImmediateModeRendering(1);
       prbMappers[prbNum]->SetResolveCoincidentTopology(1);
       tledVTK6CompatSetInput(prbMappers[prbNum], contactPrbsPolyData[prbNum]);
       
@@ -155,7 +158,8 @@ void tledModelViewer::DisplayModel(void)
    {
       // create mappers
       pltMappers[pltNum] = vtkSmartPointer<vtkPolyDataMapper>::New();
-      pltMappers[pltNum]->ImmediateModeRenderingOn();
+      // pltMappers[pltNum]->ImmediateModeRenderingOn();
+      // pltMappers[pltNum]->SetImmediateModeRendering(1);
       pltMappers[pltNum]->SetResolveCoincidentTopology(1);
       tledVTK6CompatSetInput(pltMappers[pltNum], contactPltsPolyData[pltNum]);
       
@@ -206,7 +210,8 @@ void tledModelViewer::DisplayModel(void)
        sp_actor->GetProperty()->SetOpacity(0.7);
 
        sp_mapper = vtkSmartPointer<vtkDataSetMapper>::New();
-       sp_mapper->ImmediateModeRenderingOn();
+       // sp_mapper->ImmediateModeRenderingOn();
+       // sp_mapper->SetImmediateModeRendering(1);
 
        converter.SetInput(unstructuredMeshContacts.GetRigidSurface<tledRigidContactSurface>(sInd));
        converter.Update();
@@ -241,7 +246,8 @@ void tledModelViewer::DisplayModel(void)
      vtkSmartPointer<vtkDataSetMapper> memMapper = vtkSmartPointer<vtkDataSetMapper>::New();
      vtkSmartPointer<vtkActor> memActor = vtkSmartPointer<vtkActor>::New();
 
-     memMapper->ImmediateModeRenderingOn();
+     // memMapper->ImmediateModeRenderingOn();
+     // memMapper->SetImmediateModeRendering(1);
      tledVTK6CompatSetInput(memMapper, mp_Membrane);
      memActor->SetMapper(memMapper);
      memActor->SetVisibility(1);

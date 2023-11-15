@@ -73,10 +73,15 @@ void tledGenericVTKMeshSource<TMesh, TVTKMesh>::_AddVTKNodeAttribute(const std::
 
   if (this->GetIn2OutNodeIndexMap().size() > 0) {
     for (std::vector<int>::const_iterator ic_p = this->GetOut2InNodeIndexMap().begin(); ic_p < this->GetOut2InNodeIndexMap().end(); ic_p++) {
-      sp_attribs->InsertNextTupleValue(attribs + numComponents*(*ic_p));
+      // sp_attribs->InsertNextTupleValue(attribs + numComponents*(*ic_p));
+      sp_attribs->InsertNextTuple(attribs + numComponents*(*ic_p));
+      // Considering https://github.com/PointCloudLibrary/pcl/issues/2060
+      // sp_attribs->InsertNextTypedTuple(attribs + numComponents*(*ic_p));
     }
   } else {
-    for (float const *pc_nodeAttrib = attribs; pc_nodeAttrib < attribs + numComponents*this->GetOutput()->GetNumberOfPoints(); pc_nodeAttrib += numComponents) sp_attribs->InsertNextTupleValue(pc_nodeAttrib);
+    for (float const *pc_nodeAttrib = attribs; pc_nodeAttrib < attribs + numComponents*this->GetOutput()->GetNumberOfPoints(); pc_nodeAttrib += numComponents) sp_attribs->InsertNextTuple(pc_nodeAttrib);
+    // sp_attribs->InsertNextTypedTuple(pc_nodeAttrib);
+    //sp_attribs->InsertNextTupleValue(pc_nodeAttrib);
   }
   this->GetOutput()->GetPointData()->AddArray(sp_attribs);
 
