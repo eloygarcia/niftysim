@@ -48,6 +48,8 @@ RUN cd tk8.6.6/unix && ./configure && make && make install
 #RUN mkdir -p
 RUN wget http://www.vtk.org/files/release/8.2/VTK-8.2.0.tar.gz && tar -zxvf VTK-8.2.0.tar.gz
 #  old version 7.1.1
+# second old version 8.2.0
+# version 9.3.0 does not work
 
 RUN mkdir -p /home/vtk-build2
 RUN cd /home/vtk-build2/ && cmake \

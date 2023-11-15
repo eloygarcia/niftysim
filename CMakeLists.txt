@@ -61,7 +61,8 @@ IF(USE_VIZ)
    ENDIF(NOT VTK_FOUND)
    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_Visualisation_")
 
-   INCLUDE(${VTK_USE_FILE})     
+   # INCLUDE(${VTK_USE_FILE})    ## VTK<9.0
+   include_directories(${VTK_INCLUDE_DIRS})
 ENDIF(USE_VIZ)
 
 #-----------------------------------------------------------------------------
