@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Model>
+  <SubModel>
+    <MSHMesh Type="T4">
+      box.msh
+      <Translation>
+	-0.5001 0.25 0
+      </Translation>
+    </MSHMesh>
+    <ElementSet Size="all">
+      <Material Type="NH">
+	<ElasticParams NumParams="2">
+	  200 2000
+	</ElasticParams>
+      </Material>
+      0
+    </ElementSet>
+    <Constraint Type="Fix" DOF="2" SpecType="NORMAL">
+      <Normal ToleranceAngle="2">
+	0 0 -1
+      </Normal>
+    </Constraint>
+
+    <Constraint Type="Disp" DOF="0" SpecType="NORMAL" LoadShape="RAMP">
+      <Normal ToleranceAngle="2">
+	-1 0 0
+      </Normal>
+      <Magnitudes Type="UNIFORM">
+	0.1
+      </Magnitudes>
+    </Constraint>
+  </SubModel>
+
+  <SubModel>
+    <MSHMesh Type="T4">
+      box.msh
+      <Translation>
+	0.5001 -0.25 0
+      </Translation>      
+    </MSHMesh>
+    <ElementSet Size="all">
+      <Material Type="NH">
+	<ElasticParams NumParams="2">
+	  400 3000
+	</ElasticParams>
+      </Material>
+      0
+    </ElementSet>
+    <Constraint Type="Disp" DOF="0" SpecType="NORMAL" LoadShape="RAMP">
+      <Normal ToleranceAngle="2">
+	1 0 0
+      </Normal>
+      <Magnitudes Type="UNIFORM">
+	-0.1
+      </Magnitudes>
+    </Constraint>
+  </SubModel>
+    
+  <SubModelNodeMergerDistance>
+    0.001
+  </SubModelNodeMergerDistance>
+
+  <SystemParams>
+    <TimeStep>1e-3</TimeStep>
+    <TotalTime>1</TotalTime>
+    <DampingCoeff>0.5</DampingCoeff>
+    <Density>10</Density>
+  </SystemParams>
+</Model>

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Model>
+  <SubModel>
+    <MSHMesh Type="T4">
+      box.msh
+      <Translation>
+	-3 0 0
+      </Translation>
+    </MSHMesh>
+    <ElementSet Size="all">
+      <Material Type="NH">
+	<ElasticParams NumParams="2">
+	  200 2000
+	</ElasticParams>
+      </Material>
+      0
+    </ElementSet>
+    <Constraint Type="Fix" DOF="2" SpecType="NORMAL">
+      <Normal ToleranceAngle="2">
+	0 0 -1
+      </Normal>
+    </Constraint>
+
+    <Constraint Type="Disp" DOF="2" SpecType="NORMAL" LoadShape="RAMP">
+      <Normal ToleranceAngle="2">
+	0 0 1
+      </Normal>
+      <Magnitudes Type="UNIFORM">
+	-0.1
+      </Magnitudes>
+    </Constraint>
+  </SubModel>
+
+  <SubModel>
+    <MSHMesh Type="T4">
+      box.msh
+      <Translation>
+	0 3.5 0
+      </Translation>      
+      <ScaleFactor>
+	1.5
+      </ScaleFactor>
+    </MSHMesh>
+    <ElementSet Size="all">
+      <Material Type="NH">
+	<ElasticParams NumParams="2">
+	  400 3000
+	</ElasticParams>
+      </Material>
+      0
+    </ElementSet>
+    <Constraint Type="Fix" DOF="2" SpecType="NORMAL">
+      <Normal ToleranceAngle="2">
+	0 0 -1
+      </Normal>
+    </Constraint>
+  </SubModel>
+
+  <SubModel>
+    <MSHMesh Type="T4">
+      sphere.msh
+    </MSHMesh>
+    <ElementSet Size="all">
+      <Material Type="NH">
+	<ElasticParams NumParams="2">
+	  400 3000
+	</ElasticParams>
+      </Material>
+      0
+    </ElementSet>
+    <Constraint Type="Fix" NumNodes="64" DOF="2">
+      <Nodes>
+	18
+	19
+	20
+	33
+	34
+	35
+	45
+	46
+	47
+	48
+	49
+	50
+	51
+	52
+	53
+	60
+	61
+	62
+	75
+	76
+	77
+	122
+	123
+	124
+	125
+	126
+	127
+	128
+	129
+	130
+	131
+	143
+	144
+	146
+	147
+	148
+	150
+	151
+	162
+	164
+	165
+	167
+	168
+	170
+	171
+	174
+	185
+	195
+	199
+	219
+	220
+	221
+	222
+	223
+	224
+	231
+	236
+	237
+	238
+	244
+	245
+	249
+	250
+	251
+      </Nodes>
+    </Constraint>
+    <Constraint Type="Disp" DOF="0" SpecType="NORMAL" LoadShape="RAMP">
+      <Normal ToleranceAngle="10">
+	1 0 0
+      </Normal>
+      <Magnitudes Type="UNIFORM">
+	-0.2
+      </Magnitudes>
+    </Constraint>
+  </SubModel>
+    
+  <SystemParams>
+    <TimeStep>1e-3</TimeStep>
+    <TotalTime>1</TotalTime>
+    <DampingCoeff>0.5</DampingCoeff>
+    <Density>10</Density>
+  </SystemParams>
+</Model>

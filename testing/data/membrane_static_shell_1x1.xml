@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Model>
+  <Nodes NumNodes="4" DOF="3">
+    0 0 0
+    0 1 0
+    1 0 0
+    1 1 0
+  </Nodes>
+  <Elements NumEls="0" Type="T4" />
+  <ElementSet Size="all">
+    <Material Type="NH">
+      <ElasticParams NumParams="2">
+	200 2000
+      </ElasticParams>
+    </Material>
+    0
+  </ElementSet>
+  <ShellElements NumEls="2" Type="T3">
+    0 2 1
+    2 3 1
+  </ShellElements>
+  <ShellElementSet Size="all">
+    <Material Type="LinearShell">
+      0 0 5000 0.3
+      <Density>10</Density>
+      <Thickness>1.</Thickness>
+    </Material>
+  </ShellElementSet>
+  <SystemParams>
+    <TimeStep>1e-3</TimeStep>
+    <TotalTime>1e-3</TotalTime>
+    <DampingCoeff>0.1</DampingCoeff>
+    <Density>10</Density>
+  </SystemParams>
+</Model>

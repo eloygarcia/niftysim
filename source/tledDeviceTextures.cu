@@ -1,0 +1,41 @@
+#ifndef _tledDeviceTextures_CU_
+#define _tledDeviceTextures_CU_
+
+#include "tledCUDAHelpers.h"
+
+texture<float4,1,cudaReadModeElementType> txDhDx;
+texture<int4,1,cudaReadModeElementType> txEInd;
+texture<float4,1,cudaReadModeElementType> txHG;
+texture<int2,1,cudaReadModeElementType> txNodeMap;
+texture<int2,1,cudaReadModeElementType> txFCds;
+texture<float4,1,cudaReadModeElementType> txUprev;
+texture<float4,1,cudaReadModeElementType> txUcurr;
+texture<float,1,cudaReadModeElementType> txUnextV;
+texture<float4,1,cudaReadModeElementType> txFEl;
+texture<float4,1,cudaReadModeElementType> txCD;
+texture<int4,1,cudaReadModeElementType> txFixMask;
+texture<int4,1,cudaReadModeElementType> txDispMask;
+texture<float4,1,cudaReadModeElementType> txUload;
+texture<float4,1,cudaReadModeElementType> txF4Fext;
+texture<float4,1,cudaReadModeElementType> txVol_MType_K;
+texture<float4,1,cudaReadModeElementType> txElasticParams;
+texture<int2,1,cudaReadModeElementType> txNumProny;
+texture<float2,1,cudaReadModeElementType> txEulerIso;
+texture<float2,1,cudaReadModeElementType> txEulerVol;
+texture<float4,1,cudaReadModeElementType> txStateIso;
+texture<float4,1,cudaReadModeElementType> txStateVol;
+texture<float,1,cudaReadModeElementType> txVa;
+texture<float,1,cudaReadModeElementType> txPa;
+texture<float,1,cudaReadModeElementType> txMfc;
+texture<float4,1,cudaReadModeElementType> txNodeCds;
+texture<int,1,cudaReadModeElementType> txCylSlvMask;
+texture<float4,1,cudaReadModeElementType> txCylOrig;
+texture<float4,1,cudaReadModeElementType> txCylAxis;
+texture<int,1,cudaReadModeElementType> txPrbSlvMask;
+texture<float4,1,cudaReadModeElementType> txPrbOrig;
+texture<float4,1,cudaReadModeElementType> txPrbAxis;
+texture<int,1,cudaReadModeElementType> txPltSlvMask;
+texture<float4,1,cudaReadModeElementType> txPltA;
+texture<float4,1,cudaReadModeElementType> txPltB;
+texture<float4,1,cudaReadModeElementType> txPltC;
+#endif // _tledDeviceTextures_CU_

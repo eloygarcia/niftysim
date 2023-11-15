@@ -1,0 +1,20 @@
+// =========================================================================
+// File:       tledTestResources.h.in
+// Purpose:    Provides host specific settings and resources for unit tests.
+// Package:    NiftySim: Nonlinear finite element program
+// Author:     Stian Johnsen
+// Language:   C++
+// Created:    April 2014
+// 
+// Copyright (c) 2014, University College London. All rights reserved.
+// Centre for Medical Image Computing (CMIC)
+// See the LICENSE.txt file in the root folder
+// 
+// stian.johnsen.09@ucl.ac.uk
+// =========================================================================
+#ifndef tledTestResources_H
+#define tledTestResources_H
+
+#define TLED_TEST_DATA_DIR "@CMAKE_CURRENT_SOURCE_DIR@/data"
+
+#endif
