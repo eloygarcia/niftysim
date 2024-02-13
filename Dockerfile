@@ -1,7 +1,6 @@
 
-# FROM ubuntu:18.04
 FROM nvidia/cuda:11.7.1-devel-ubuntu20.04 
-#nvcc -V
+
 
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
@@ -12,7 +11,7 @@ apt-get update; 	\
 apt-get install -y g++ curl libzmq3-dev wget git; \
 apt-get install -y libx11-dev libxt-dev xserver-xorg-dev xorg-dev ;
     
-# cnake
+# cmake
  RUN wget http://www.cmake.org/files/v3.12/cmake-3.12.0.tar.gz \
     && tar xzf cmake-3.12.0.tar.gz
 # old version 2.8.12.2
@@ -71,7 +70,7 @@ RUN cd /home/niftysim/release/
 #RUN cd /home/
 #RUN git clone git@github.com:NVIDIA/cuda-samples.git
 
-RUN cd /home/niftysim/release/ && cmake -G "Unix Makefiles" -DUSE_VIZ:BOOL=ON \-DUSE_CUDA:BOOL=ON \-DUSE_NAMESPACE_STD:BOOL=ON / -DVTK_DIR:STRING=/home/vtk-build2/ \-DCUDA_SDK_COMMON_INCLUDE_DIR:STRING=/home/niftysim/cuda-samples/Common/ \-DUSE_NAMESPACE_STD:BOOL=ON \-DUSE_GPU_GP_CONTACT:BOOL=ON \/home/niftysim  && make
+RUN cd /home/niftysim/release/ && cmake -G "Unix Makefiles" -DUSE_VIZ:BOOL=ON \-DUSE_CUDA:BOOL=ON \-DUSE_NAMESPACE_STD:BOOL=ON / -DVTK_DIR:STRING=/home/vtk-build2/ \-DCUDA_SDK_COMMON_INCLUDE_DIR:STRING="/home/niftysim/cuda samples/Common/" \-DUSE_NAMESPACE_STD:BOOL=ON \-DUSE_GPU_GP_CONTACT:BOOL=ON \/home/niftysim  && make
 
 #RUN make 
 
