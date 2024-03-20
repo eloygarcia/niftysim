@@ -1,3 +1,16 @@
+> :warning: This in a personal github page which contains my own version of [NiftySim v.2.5.0](https://sourceforge.net/projects/niftysim/). Note that **this software is out to date from 2017**. The only reason to preserve this version is to compare and test newest results with previous approaches
+> 
+> Currently, NiftySim can be executed using old versions of the libraries. In particular, `CUDA 11.7`, `cmake, 3.12.0`, and `vtk 8.2.0`, to my knowledge. Therefore, we use **Docker** to run the software. 
+> 
+> Check **Dockerfile**!!
+
+
+> :warning: Some points to take into account when building and running this docker image:
+> 
+> Use GPUS capabilities
+> Give a name to your container
+> 
+
 NIFTY SIM
 
 ===================================================================================
