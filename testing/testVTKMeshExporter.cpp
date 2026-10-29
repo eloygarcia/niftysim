@@ -126,7 +126,8 @@ static void _TestAttributes() {
     for (int vInd = 0; vInd < p_array->GetNumberOfTuples(); vInd++) {
       float tmpTuple[3];
 
-      p_array->GetTupleValue(vInd, tmpTuple);
+      // p_array->GetTupleValue(vInd, tmpTuple);
+      p_array->GetTypedTuple(vInd, tmpTuple);
       for (int cInd = 0; cInd < 3; cInd++) {
 	tledUnitTestAssert(std::fabs(tmpTuple[cInd] - refVecAttrib[cInd+3*vInd]) < 1e-5*std::fabs(refVecAttrib[cInd+3*vInd]));
       }
@@ -138,7 +139,8 @@ static void _TestAttributes() {
     for (int vInd = 0; vInd < p_array->GetNumberOfTuples(); vInd++) {
       float tmpTuple;
 
-      p_array->GetTupleValue(vInd, &tmpTuple);
+      // p_array->GetTupleValue(vInd, &tmpTuple);
+      p_array->GetTypedTuple(vInd, &tmpTuple);
       tledUnitTestAssert(std::fabs(tmpTuple - refScalarAttrib[vInd]) < 1e-5*std::fabs(refScalarAttrib[vInd]));
     }
   }

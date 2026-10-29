@@ -1,9 +1,7 @@
+cmake_minimum_required(VERSION 3.2)
 PROJECT(nifty_sim)
 
-cmake_minimum_required(VERSION 2.8)
-
 #-----------------------------------------------------------------------------
-
 if(COMMAND cmake_policy)
    cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
@@ -46,27 +44,64 @@ ENDIF (NOT USE_NAMESPACE_STD)
 
 #-----------------------------------------------------------------------------
 
-IF (USE_CUDA AND USE_VIZ)
+#IF (USE_CUDA AND USE_VIZ)
   # The standard FindCUDA.cmake shipping with all versions up to and including 3.1 is broken when used in conjunction with VTK >= 6.0
-  SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH}")
-ENDIF (USE_CUDA AND USE_VIZ)
+#  SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH}")
+#ENDIF (USE_CUDA AND USE_VIZ)
 
 #-----------------------------------------------------------------------------
+IF(USE_VIZ)  
+   find_package(VTK REQUIRED COMPONENTS
+      CommonCore
+      CommonDataModel
+      FiltersCore
+      FiltersSources
+      InteractionStyle
+      RenderingCore
+      RenderingOpenGL2
+      InteractionStyle
+      IOLegacy
+      IOImage
+   )
+  MESSAGE(STATUS "VTK_VERSION=${VTK_VERSION}")
+  MESSAGE(STATUS "VTK_DIR=${VTK_DIR}")
 
-IF(USE_VIZ)
-   ## VTK is needed ##
-   FIND_PACKAGE(VTK REQUIRED)
+ get_target_property(
+  VTK_INCLUDE_DIR
+  VTK::CommonCore
+  INTERFACE_INCLUDE_DIRECTORIES
+)
+
+message(STATUS "VTK_INCLUDE_DIR=${VTK_INCLUDE_DIR}")
+  
+set(NIFTYSIM_VTK_INCLUDE_DIR
+  ${VTK_INCLUDE_DIR}
+  CACHE INTERNAL "VTK include directory"
+)
+
+   
+  ADD_DEFINITIONS(-D_Visualisation_)
+   
+
+   
+   #include_directories(${VTK_INCLUDE_DIRS})
+   
    IF(NOT VTK_FOUND)
       MESSAGE(FATAL_ERROR "VTK package not found")
    ENDIF(NOT VTK_FOUND)
-   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_Visualisation_")
+   
+   # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_Visualisation_")
+   # target_compile_definitions(viz PRIVATE _Visualisation_)
 
-   # INCLUDE(${VTK_USE_FILE})    ## VTK<9.0
-   include_directories(${VTK_INCLUDE_DIRS})
+   IF(VTK_VERSION VERSION_LESS "9.0")
+   	INCLUDE(${VTK_USE_FILE})    ## VTK<9.0
+   	include_directories(${VTK_INCLUDE_DIRS})
+   ENDIF()
+   
+   
 ENDIF(USE_VIZ)
 
 #-----------------------------------------------------------------------------
-
 IF (USE_BOOST)  
   IF (USE_CUDA) 
     SET(USE_BOOST OFF)
@@ -80,16 +115,8 @@ IF (USE_BOOST)
   ENDIF (USE_CUDA)    
 ENDIF (USE_BOOST)
 
-#-----------------------------------------------------------------------------
-
-IF (BUILD_NIFTYSIM_TESTS)
-  INCLUDE(${CMAKE_ROOT}/Modules/Dart.cmake)
-  ENABLE_TESTING()
-  SUBDIRS(testing)
-ENDIF (BUILD_NIFTYSIM_TESTS)
 
 #-----------------------------------------------------------------------------
-
 IF(USE_CUDA)
   IF (USE_BOOST) 
     SET(USE_BOOST OFF)
@@ -97,7 +124,6 @@ IF(USE_CUDA)
 
   FIND_PACKAGE(CUDA REQUIRED)
 
-  IF (CUDA_VERSION VERSION_GREATER "5.0" OR CUDA_VERSION VERSION_EQUAL "5.0")
     SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-D_CUDA_5PLUS_SDK")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_CUDA_5PLUS_SDK")     
 
@@ -112,25 +138,6 @@ IF(USE_CUDA)
 
     INCLUDE_DIRECTORIES(${CUDA_SDK_COMMON_INCLUDE_DIR})
     CUDA_INCLUDE_DIRECTORIES(${CUDA_SDK_COMMON_INCLUDE_DIR})
-  ELSE ()
-    IF (CUDA_VERSION VERSION_LESS "4.0")
-      MESSAGE(WARNING "Your CUDA toolkit version is old, some NiftySim features may not be available or working correctly.")
-      SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-D_CUDA_3MINUS_SDK")
-      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_CUDA_3MINUS_SDK")
-    ENDIF (CUDA_VERSION VERSION_LESS "4.0")
-
-    FIND_PATH(CUDA_CUT_INCLUDE_DIR
-      cutil.h
-      PATHS ${CUDA_SDK_SEARCH_PATH}
-      PATH_SUFFIXES "common/inc"
-      DOC "Location of cutil.h"
-      NO_DEFAULT_PATH
-      )
-    MARK_AS_ADVANCED(CUDA_CUT_INCLUDE_DIR)
-
-    INCLUDE_DIRECTORIES(${CUDA_CUT_INCLUDE_DIR})
-    CUDA_INCLUDE_DIRECTORIES(${CUDA_CUT_INCLUDE_DIR})
-  ENDIF (CUDA_VERSION VERSION_GREATER "5.0" OR CUDA_VERSION VERSION_EQUAL "5.0")
 
   SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-D_GPU_")
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GPU_")
@@ -138,20 +145,14 @@ IF(USE_CUDA)
 ENDIF(USE_CUDA)
 
 #-----------------------------------------------------------------------------
-
 IF (USE_GPU_GP_CONTACT)
-  IF (CUDA_VERSION VERSION_GREATER "4.2") 
     SET(NIFTYSIM_CUDA_ARCH "compute_70" CACHE STRING "GPU architecture")
     SET(NIFTYSIM_CUDA_CODE "sm_70" CACHE STRING "GPU back-end target")
     SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-gencode=arch=${NIFTYSIM_CUDA_ARCH},code=${NIFTYSIM_CUDA_CODE};-D_USE_THRUST_;-D_USE_CUDA_ATOMICS;-DGPU_GP_CONTACT")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGPU_GP_CONTACT")
-  ELSE (CUDA_VERSION VERSION_GREATER "4.2") 
-    MESSAGE(FATAL "Sorry your CUDA toolkit is too old, please upgrade before enabling USE_GPU_GP_CONTACT")
-  ENDIF (CUDA_VERSION VERSION_GREATER "4.2") 
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGPU_GP_CONTACT") 
 ENDIF (USE_GPU_GP_CONTACT)
 
 #-----------------------------------------------------------------------------
-
 IF (BUILD_DOXYGEN_DOCS)
   FIND_PACKAGE(Doxygen)
   IF (DOXYGEN_FOUND)
@@ -184,6 +185,13 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_CMAKE_USED")
 
 SUBDIRS(xmlParser)
 SUBDIRS(source)
+
+#-----------------------------------------------------------------------------
+IF (BUILD_NIFTYSIM_TESTS)
+  INCLUDE(${CMAKE_ROOT}/Modules/Dart.cmake)
+  ENABLE_TESTING()
+  SUBDIRS(testing)
+ENDIF (BUILD_NIFTYSIM_TESTS)
 
 #-----------------------------------------------------------------------------
 

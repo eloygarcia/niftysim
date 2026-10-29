@@ -1016,10 +1016,12 @@ std::vector<float> tledModel::GetTractionFaceTractions(const int ConstraintNum) 
 
 void tledModel::SetTimeStep(double dt)
 {
-   char* str = new char[15];
-   sprintf(str,"%15.14f",dt);
+   // char* str = new char[15];
+   // sprintf(str,"%15.14f",dt);
+   char str[64];
+   snprintf(str, sizeof(str), "%15.14f", dt);
    xModel.getChildNode("SystemParams").getChildNode("TimeStep").updateText(str);
-   delete str;
+   // delete str;
 }
 
 void tledModel::SetConstraintMag(const int ConstraintNum, const std::vector<float> &Mag)

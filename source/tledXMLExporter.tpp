@@ -21,7 +21,10 @@ void tledXMLExporter<TInput>::CreateRoot(void) {
 template <class TInput>
 template <typename TValue>
 XMLNode tledXMLExporter<TInput>::AddNumericAttribute(XMLNode &r_node, const std::string &name, const TValue value) {
-  r_node.addAttribute(name.c_str(), static_cast<std::ostringstream&>(std::ostringstream() << value).str().c_str());
+  // r_node.addAttribute(name.c_str(), static_cast<std::ostringstream&>(std::ostringstream() << value).str().c_str());
+  std::ostringstream oss;
+  oss << value;
+  r_node.addAttribute(name.c_str(), oss.str().c_str());
 
   return r_node;
 }
@@ -39,7 +42,6 @@ template <class TInput>
 template <typename TValue>
 XMLNode tledXMLExporter<TInput>::CreateNumericNode(const std::string &name, const TValue value) {
   std::ostringstream oss;
-
   oss << value;
 
   return this->CreateTextNode(name, oss.str());

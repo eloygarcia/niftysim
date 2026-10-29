@@ -61,6 +61,10 @@ FOREACH (TEST ${NO_VTK_TESTS})
      
   IF (USE_VIZ)
     TARGET_LINK_LIBRARIES(${TEST} unitTests tled viz)
+    target_include_directories(unitTests
+         PUBLIC
+         ${NIFTYSIM_VTK_INCLUDE_DIR}
+    )
   ELSE (USE_VIZ)
     TARGET_LINK_LIBRARIES(${TEST} unitTests tled)
   ENDIF (USE_VIZ)  
