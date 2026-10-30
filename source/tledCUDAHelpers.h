@@ -25,15 +25,15 @@
 
 #include <cuda_runtime.h>
 #include <vector_types.h>
-#ifndef _CUDA_5PLUS_SDK
-#include <cutil.h>
-#include <cutil_inline_runtime.h>
-#else
+// #ifndef _CUDA_5PLUS_SDK
+//#include <cutil.h>
+//#include <cutil_inline_runtime.h>
+//#else
 #include <helper_cuda.h>
 #include <helper_math.h>
-#endif
+//#endif
 
-#if defined _USE_CUDA_ATOMICS && (defined __CUDA_ARCH__ &&  __CUDA_ARCH__ < 130)
+#if defined _USE_CUDA_ATOMICS && (defined __CUDA_ARCH__ && __CUDA_ARCH__ < 130)
 #warning Enabling atomic operations was requested but GPU architecture too old
 #undef _USE_CUDA_ATOMICS
 #endif
@@ -65,11 +65,11 @@
 #define tledCudaAssert(cond)
 #endif
 
-#ifndef _CUDA_5PLUS_SDK
-#define tledCheckCUDAErrors(expr) CUDA_SAFE_CALL(expr)
-#else
+//#ifndef _CUDA_5PLUS_SDK
+//#define tledCheckCUDAErrors(expr) CUDA_SAFE_CALL(expr)
+//#else
 #define tledCheckCUDAErrors(expr) checkCudaErrors(expr)
-#endif
+//#endif
 
 #if !defined NDEBUG && !defined _CUDA_3MINUS_SDK
 #define tledDeviceSyncDebug tledCheckCUDAErrors(cudaDeviceSynchronize())

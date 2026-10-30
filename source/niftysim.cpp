@@ -128,11 +128,11 @@ int main(int argc, char **argv)
    
 #ifdef _GPU_
    if (inParams->cudaDeviceId < 0) {
-#ifndef _CUDA_5PLUS_SDK
-     inParams->cudaDeviceId = cutGetMaxGflopsDeviceId();
-#else
-     inParams->cudaDeviceId = gpuGetMaxGflopsDeviceId();
-#endif
+//#ifndef _CUDA_5PLUS_SDK
+//     inParams->cudaDeviceId = cutGetMaxGflopsDeviceId();
+//#else
+inParams->cudaDeviceId = gpuGetMaxGflopsDeviceId();
+// #endif
    }
    cudaSetDevice(inParams->cudaDeviceId);   
 #endif

@@ -405,7 +405,13 @@ ENDFOREACH ( TPP )
 INSTALL(FILES ${NIFTYSIM_TPP_FILES} DESTINATION include)
 
 IF (USE_CUDA)
-  CUDA_ADD_LIBRARY( ${NAME} ${TLED_LIST} )
+  ADD_LIBRARY( ${NAME} ${TLED_LIST} )
+    target_compile_definitions(
+      tled
+      PUBLIC
+          _GPU_
+          #GPU_GP_CONTACT
+  )
 ELSE (USE_CUDA)
   ADD_LIBRARY( ${NAME} ${TLED_LIST} )
 ENDIF (USE_CUDA)
@@ -443,7 +449,6 @@ IF(USE_VIZ)
 
   ADD_LIBRARY( ${NAME} ${VIZ_LIST} )
 
-  # TARGET_LINK_LIBRARIES(${NAME} ${VTK_LIBRARIES})
   TARGET_LINK_LIBRARIES(${NAME}
        PUBLIC
        ${VTK_LIBRARIES}
@@ -473,7 +478,7 @@ ENDIF(USE_VIZ)
 #-----------------------------------------------------------------------------
 
 IF(USE_CUDA)
-   CUDA_ADD_EXECUTABLE(niftysim niftysim.cpp)
+   ADD_EXECUTABLE(niftysim niftysim.cpp)
    IF(USE_VIZ)
       TARGET_LINK_LIBRARIES(niftysim tled viz)
    ELSE(USE_VIZ)

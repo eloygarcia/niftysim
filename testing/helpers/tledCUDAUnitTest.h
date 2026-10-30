@@ -19,11 +19,11 @@
 namespace tledCUDAUnitTest {
   __tled_inline void InitCUDATests(void) {
 #ifdef _GPU_
-#ifndef _CUDA_5PLUS_SDK
-    cudaSetDevice(cutGetMaxGflopsDeviceId());
-#else
+// #ifndef _CUDA_5PLUS_SDK
+//    cudaSetDevice(cutGetMaxGflopsDeviceId());
+// #else
     cudaSetDevice(gpuGetMaxGflopsDeviceId());
-#endif
+//#endif
 #endif
   }
 

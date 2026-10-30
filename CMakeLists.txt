@@ -43,13 +43,6 @@ IF (NOT USE_NAMESPACE_STD)
 ENDIF (NOT USE_NAMESPACE_STD)
 
 #-----------------------------------------------------------------------------
-
-#IF (USE_CUDA AND USE_VIZ)
-  # The standard FindCUDA.cmake shipping with all versions up to and including 3.1 is broken when used in conjunction with VTK >= 6.0
-#  SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH}")
-#ENDIF (USE_CUDA AND USE_VIZ)
-
-#-----------------------------------------------------------------------------
 IF(USE_VIZ)  
    find_package(VTK REQUIRED COMPONENTS
       CommonCore
@@ -79,19 +72,11 @@ set(NIFTYSIM_VTK_INCLUDE_DIR
   CACHE INTERNAL "VTK include directory"
 )
 
-   
   ADD_DEFINITIONS(-D_Visualisation_)
-   
-
-   
-   #include_directories(${VTK_INCLUDE_DIRS})
    
    IF(NOT VTK_FOUND)
       MESSAGE(FATAL_ERROR "VTK package not found")
    ENDIF(NOT VTK_FOUND)
-   
-   # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_Visualisation_")
-   # target_compile_definitions(viz PRIVATE _Visualisation_)
 
    IF(VTK_VERSION VERSION_LESS "9.0")
    	INCLUDE(${VTK_USE_FILE})    ## VTK<9.0
@@ -122,10 +107,14 @@ IF(USE_CUDA)
     SET(USE_BOOST OFF)
   ENDIF (USE_BOOST) 
 
+  # FIND_PACKAGE(CUDA REQUIRED)
+  enable_language(CUDA)
   FIND_PACKAGE(CUDA REQUIRED)
+  INCLUDE_DIRECTORIES(${CUDA_INCLUDE_DIRS})
 
-    SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-D_CUDA_5PLUS_SDK")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_CUDA_5PLUS_SDK")     
+  MESSAGE(STATUS "CUDA_INCLUDE_DIRS=${CUDA_INCLUDE_DIRS}")
+
+  set(CMAKE_CUDA_ARCHITECTURES 86)
 
     FIND_PATH(CUDA_SDK_COMMON_INCLUDE_DIR
       helper_cuda.h
@@ -137,17 +126,16 @@ IF(USE_CUDA)
     MARK_AS_ADVANCED(CUDA_SDK_COMMON_INCLUDE_DIR)
 
     INCLUDE_DIRECTORIES(${CUDA_SDK_COMMON_INCLUDE_DIR})
-    CUDA_INCLUDE_DIRECTORIES(${CUDA_SDK_COMMON_INCLUDE_DIR})
 
   SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-D_GPU_")
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GPU_")
-  CUDA_INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/source)
+  INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/source)
 ENDIF(USE_CUDA)
 
 #-----------------------------------------------------------------------------
 IF (USE_GPU_GP_CONTACT)
-    SET(NIFTYSIM_CUDA_ARCH "compute_70" CACHE STRING "GPU architecture")
-    SET(NIFTYSIM_CUDA_CODE "sm_70" CACHE STRING "GPU back-end target")
+    SET(NIFTYSIM_CUDA_ARCH "compute_86" CACHE STRING "GPU architecture")
+    SET(NIFTYSIM_CUDA_CODE "sm_86" CACHE STRING "GPU back-end target")
     SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-gencode=arch=${NIFTYSIM_CUDA_ARCH},code=${NIFTYSIM_CUDA_CODE};-D_USE_THRUST_;-D_USE_CUDA_ATOMICS;-DGPU_GP_CONTACT")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGPU_GP_CONTACT") 
 ENDIF (USE_GPU_GP_CONTACT)

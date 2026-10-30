@@ -17,17 +17,17 @@
 #ifndef tledCUDA_operators_CU
 #define tledCUDA_operators_CU
 
-#ifdef _CUDA_5PLUS_SDK
+// #ifdef _CUDA_5PLUS_SDK
 #include <helper_math.h>
-#endif
+// #endif
 
 // Operator "+" ~~~~~~~~~~~~~~~~~~~~~~
-#ifndef _CUDA_5PLUS_SDK
+/* #ifndef _CUDA_5PLUS_SDK
 inline __device__ float3 operator+(const float3 a, const float3 b)
 {
    return make_float3(a.x + b.x, a.y + b.y, a.z + b.z);
 }
-#endif
+#endif */
 
 inline __device__ float3 operator+(const float3 &a, const float4 &b) {
   return make_float3(a.x + b.x, a.y + b.y, a.z + b.z);
@@ -37,7 +37,7 @@ inline __device__ float2 operator+(const float2 &a, const float2 &b) {
   return make_float2(a.x + b.x, a.y + b.y);
 }
 
-#ifndef _CUDA_5PLUS_SDK
+/* #ifndef _CUDA_5PLUS_SDK
 inline __device__ float3 operator+(const float3 a, const float b)
 {
    return make_float3(a.x + b, a.y + b, a.z + b);
@@ -47,7 +47,7 @@ inline __device__ float3 operator+(const float a, const float3 b)
 {
    return make_float3(a + b.x, a + b.y, a + b.z);
 }
-#endif
+#endif */
 
 inline __device__ float3 operator+(const float3 a, const int b)
 {
@@ -59,7 +59,7 @@ inline __device__ float3 operator+(const int a, const float3 b)
    return make_float3((float)a + b.x, (float)a + b.y, (float)a + b.z);
 }
 
-#ifndef _CUDA_5PLUS_SDK
+/* #ifndef _CUDA_5PLUS_SDK
 inline __device__ int3 operator+(const int3 a, const int b)
 {
    return make_int3(a.x + b, a.y + b, a.z + b);
@@ -79,10 +79,10 @@ inline __device__ int4 operator+(const int4 a, const int b)
 {
    return make_int4(a.x + b, a.y + b, a.z + b, a.w + b);
 }
-#endif
+#endif */
 
 // Operator "+=" ~~~~~~~~~~~~~~~~~~~~~~
-#ifndef _CUDA_5PLUS_SDK
+/* #ifndef _CUDA_5PLUS_SDK
 inline __device__ void operator+=(float4 &a, const float4 &b) {
   a.x += b.x;
   a.y += b.y;
@@ -95,7 +95,7 @@ inline __device__ void operator+=(float3 &a, const float3 &b) {
   a.y += b.y;
   a.z += b.z;
 }
-#endif
+#endif */
 
 inline __device__ void operator+=(float4 &r_a, const float3 &b) {
   r_a.x += b.x;
@@ -109,7 +109,7 @@ inline __device__ void operator+=(float2 &r_a, const float2 &b) {
 }
 
 // Operator "-" ~~~~~~~~~~~~~~~~~~~~~~
-#ifndef _CUDA_5PLUS_SDK
+/* #ifndef _CUDA_5PLUS_SDK
 inline __device__ float3 operator-(const float3 a, const float3 b)
 {
    return make_float3(a.x - b.x, a.y - b.y, a.z - b.z);
@@ -124,7 +124,7 @@ inline __device__ float3 operator-(const float a, const float3 b)
 {
    return make_float3(a - b.x, a - b.y, a - b.z);
 }
-#endif
+#endif */
 
 inline __device__ float3 operator-(const float3 a, const int b)
 {
@@ -141,12 +141,12 @@ inline __device__ float3 operator-(const float3 a)
    return make_float3(-a.x, -a.y, -a.z);
 }
 
-#ifndef _CUDA_5PLUS_SDK
+/* #ifndef _CUDA_5PLUS_SDK
 inline __device__ float4 operator-(const float4 a, const float4 b)
 {
    return make_float4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
 }
-#endif
+#endif */
 
 inline __device__ float4 operator-(const float4 a)
 {
@@ -154,7 +154,7 @@ inline __device__ float4 operator-(const float4 a)
 }
 
 // Operator "-=" ~~~~~~~~~~~~~~~~~~~~~~
-#ifndef _CUDA_5PLUS_SDK
+/* #ifndef _CUDA_5PLUS_SDK
 inline __device__ void operator-=(float4& r_a, const float4 &b) 
 {
   r_a.x -= b.x;
@@ -169,7 +169,7 @@ inline __device__ void operator-=(float3& r_a, const float3 &b)
   r_a.y -= b.y;
   r_a.z -= b.z;
 }
-#endif
+#endif */
 
 inline __device__ void operator-=(float4& r_a, const float3 &b) {
   r_a.x -= b.x;
@@ -178,7 +178,7 @@ inline __device__ void operator-=(float4& r_a, const float3 &b) {
 }
 
 // Operator "*=" ~~~~~~~~~~~~~~~~~~~~~~
-#ifndef _CUDA_5PLUS_SDK
+/* #ifndef _CUDA_5PLUS_SDK
 inline __device__ void operator*=(float3 &r_a, const float s) 
 {
   r_a.x *= s;
@@ -191,10 +191,10 @@ inline __device__ void operator*=(float2 &r_a, const float s)
   r_a.x *= s;
   r_a.y *= s;
 }
-#endif
+#endif */
 
 // Operator "/=" ~~~~~~~~~~~~~~~~~~~~~~
-#ifndef _CUDA_5PLUS_SDK
+/*#ifndef _CUDA_5PLUS_SDK
 inline __device__ void operator/=(float3 &r_a, const float s) {
   r_a.x /= s;
   r_a.y /= s;
@@ -205,10 +205,10 @@ inline __device__ void operator/=(float2 &r_a, const float s) {
   r_a.x /= s;
   r_a.y /= s;
 }
-#endif
+#endif */
 
 // Operator "*" ~~~~~~~~~~~~~~~~~~~~~~
-#ifndef _CUDA_5PLUS_SDK
+/* #ifndef _CUDA_5PLUS_SDK
 inline __device__ float3 operator*(const float a, const float3 b)
 {
    return make_float3(a*b.x, a*b.y, a*b.z);
@@ -230,7 +230,7 @@ inline __device__ int3 operator*(const int3 a, const int3 b)
    // Piece-wise multiplication (like .* in Matlab)
    return make_int3(a.x*b.x, a.y*b.y, a.z*b.z);
 }
-#endif
+#endif */
 
 inline __device__ float3 operator*(const float3 a, const int3 b)
 {
@@ -244,12 +244,12 @@ inline __device__ float3 operator*(const int3 a, const float3 b)
    return make_float3(((float)a.x)*b.x, ((float)a.y)*b.y, ((float)a.z)*b.z);
 }
 
-#ifndef _CUDA_5PLUS_SDK
+/* #ifndef _CUDA_5PLUS_SDK
 inline __device__ float4 operator*(const float a, const float4 b)
 {
    return make_float4(a*b.x, a*b.y, a*b.z, a*b.w);
 }
-#endif
+#endif */
 
 inline __device__ float4 operator*(const float4 a, const int4 b)
 {
@@ -264,7 +264,7 @@ inline __device__ float4 operator*(const int4 a, const float4 b)
 }
 
 // Operator "/" ~~~~~~~~~~~~~~~~~~~~~~
-#ifndef _CUDA_5PLUS_SDK
+/* #ifndef _CUDA_5PLUS_SDK
 inline __device__ float4 operator/(const float4 a, const float b)
 {
    // Scalar divide
@@ -276,7 +276,7 @@ inline __device__ float3 operator/(const float3 a, const float b)
    // Scalar divide
    return make_float3((a.x)/b, (a.y)/b, (a.z)/b);
 }
-#endif
+#endif */
 
 // Operator "%" ~~~~~~~~~~~~~~~~~~~~~~
 inline __device__ int3 operator%(const int3 a, const int b)
@@ -299,7 +299,7 @@ inline __device__ bool operator!=(const int2 &a, const int2 &b) {
 }
 
 // Matrix and vector functions
-#ifndef _CUDA_5PLUS_SDK
+/* #ifndef _CUDA_5PLUS_SDK
 inline __device__ float dot(const float3 a, const float3 b)
 {
    return (a.x*b.x + a.y*b.y + a.z*b.z);
@@ -313,7 +313,7 @@ inline __device__ float dot(const float4 a, const float4 b)
 inline __device__ float dot(const float2 &a, const float2 &b) {
   return a.x*b.x + a.y*b.y;
 }
-#endif
+#endif */
 
 inline __device__ float dot(const float3 &a, const float4 &b) {
   return a.x*b.x + a.y*b.y + a.z*b.z;
@@ -327,11 +327,11 @@ inline __device__ float3 interpolate(const float3 &a, const float3 &b, const flo
   return a + t*(b - a);
 }
 
-#ifndef _CUDA_5PLUS_SDK
+/* #ifndef _CUDA_5PLUS_SDK
 inline __device__ float3 cross(const float3 &a, const float3 &b) {
   return make_float3(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x);
 }
-#endif
+#endif */
 
 inline __device__ float norm(const float3 &a) {
   return sqrtf(dot(a, a));

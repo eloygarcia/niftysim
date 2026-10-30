@@ -262,7 +262,7 @@ Patch 010
 File: ./CMakeLists.txt
 Line: 66 (Within IF(USE_VIZ) .. ENDIF())
 Reason: Updating $VTK_DIR in CMake files to make them compatible with VTK9
-Fix: Include:
+Include:
 
  get_target_property(
     VTK_INCLUDE_DIR
@@ -282,7 +282,7 @@ Patch 011
 File: ./testing/CMakeLists.txt
 Line: 67
 Reason: Updating $VTK_DIR in CMake files to make them compatible with VTK9
-Fix: Modifying:
+Modify:
 
     target_include_directories(unitTests
          PUBLIC
@@ -301,7 +301,7 @@ Patch 12
 File: ./source/CMakeLists.txt
 Line: 454
 Reason: Updating $VTK_DIR in CMake files to make them compatible with VTK9
-Fix: Modifying:
+Modify:
 
     target_include_directories(tled
          PUBLIC
@@ -327,3 +327,95 @@ Old code:
         # The standard FindCUDA.cmake shipping with all versions up to and including 3.1 is broken when used in conjunction with VTK >= 6.0
         SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH}")
     ENDIF (USE_CUDA AND USE_VIZ)
+
+Patch 14
+---------
+File: ./CMakeLists.txt
+Line: 119-120
+Reason: Remove compatibility with cuda <5
+Comment: lines
+    SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-D_CUDA_5PLUS_SDK")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_CUDA_5PLUS_SDK")     
+
+
+Patch 15
+---------
+File: ./source/tledCUDAHelpers.h
+Lines: 68-72
+Reason: Remove compatibility with cuda <5
+Comment:
+    // #ifndef _CUDA_5PLUS_SDK
+    // #define tledCheckCUDAErrors(expr) CUDA_SAFE_CALL(expr)
+    // #else
+    #define tledCheckCUDAErrors(expr) checkCudaErrors(expr)
+    // #endif
+
+Patch 16
+---------
+File./source/niftysim.cpp
+Lines: 129-138
+Reason: Remove compatibility with cuda <5
+Comment:
+    #ifdef _GPU_
+    if (inParams->cudaDeviceId < 0) {
+    // #ifndef _CUDA_5PLUS_SDK
+    //      inParams->cudaDeviceId = cutGetMaxGflopsDeviceId();
+    // #else
+    inParams->cudaDeviceId = gpuGetMaxGflopsDeviceId();
+    // #endif
+    }
+    cudaSetDevice(inParams->cudaDeviceId);   
+    #endif
+
+Patch 17
+---------
+File./source/tledCUDA_operators.h
+Lines: 4-6
+Reason: Remove compatibility with cuda <5
+Fix: Comment flag _CUDA_5PLUS_SDK  
+TODO: Remove
+
+Patch 18
+---------
+File./source/tledCUDA_operators.h
+Lines: Multiple lines
+Reason: Remove compatibility with cuda <5
+Fix: Comment blocks "#ifndef _CUDA_5PLUS_SDK .. #endif" in lines: 20-25, 36-39, 69-74
+TODO: Remove
+
+Patch 19
+---------
+File./source/tledCUDA_operators.cu
+Lines: 20-22
+Reason: Remove compatibility with cuda <5
+Fix: Comment flag _CUDA_5PLUS_SDK  
+TODO: Remove
+
+Patch 20
+---------
+File./source/tledCUDA_operators.h
+Lines: Multiple lines
+Reason: Remove compatibility with cuda <5
+Fix: Comment blocks "#ifndef _CUDA_5PLUS_SDK .. #endif" in lines: 25-30, 40-50, 62-82, 85-98, 112-127, 144-149, 157-172, 181-194, 197-208, 211-233, 247-252, 267-279, 302-316, 330-334
+TODO: Remove
+
+Patch 21
+---------
+File./testing/helpers/tledCUDAUnitTest.h
+Lines: 22-26
+Reason: Remove compatibility with cuda <5
+Fix: Comment flag _CUDA_5PLUS_SDK  
+    // #ifndef _CUDA_5PLUS_SDK
+    //    cudaSetDevice(cutGetMaxGflopsDeviceId());
+    // #else
+        cudaSetDevice(gpuGetMaxGflopsDeviceId());
+    //#endif
+TODO: Remove
+
+
+Patch 14
+---------
+File: ./CMakeLists.txt
+From Line: 120 to line: 145
+Reason: Update CMake file to modern CUDA
+
