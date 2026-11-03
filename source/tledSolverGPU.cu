@@ -30,6 +30,8 @@
 #include "tledShellSolverGPU.cu"
 #include "tledSolverGPU_kernels.cu"
 
+#include "tledTextureCompatibility.h"
+
 using namespace std;
 using namespace tledSolverGPU_kernels;
 
@@ -380,38 +382,38 @@ void tledSolverGPU::Init(tledModel* Model)
       
   // Bind textures
   if (NumEls > 0) {
-    tledCheckCUDAErrors(cudaBindTexture(0,txDhDx,d_DhDx,MemSzDhDx));
-    tledCheckCUDAErrors(cudaBindTexture(0,txEInd,d_EInd,MemSzEInd));
+    tledCheckCUDAErrors(tledBindTextureSymbol(txDhDx,d_DhDx,MemSzDhDx));
+    tledCheckCUDAErrors(tledBindTextureSymbol(txEInd,d_EInd,MemSzEInd));
     if (!strcmp(EType,"H8")) {
-      tledCheckCUDAErrors(cudaBindTexture(0,txHG,d_HG,MemSzHG));
+      tledCheckCUDAErrors(tledBindTextureSymbol(txHG,d_HG,MemSzHG));
     }
-    tledCheckCUDAErrors(cudaBindTexture(0,txFCds,d_FCds,MemSzFCds));
-    tledCheckCUDAErrors(cudaBindTexture(0,txFEl,d_FEl,MemSzFEl));
-    tledCheckCUDAErrors(cudaBindTexture(0,txVol_MType_K,d_Vol_MType_K,MemSzVol));
-    tledCheckCUDAErrors(cudaBindTexture(0,txElasticParams,d_ElasticParams,MemSzElast));
+    tledCheckCUDAErrors(tledBindTextureSymbol(txFCds,d_FCds,MemSzFCds));
+    tledCheckCUDAErrors(tledBindTextureSymbol(txFEl,d_FEl,MemSzFEl));
+    tledCheckCUDAErrors(tledBindTextureSymbol(txVol_MType_K,d_Vol_MType_K,MemSzVol));
+    tledCheckCUDAErrors(tledBindTextureSymbol(txElasticParams,d_ElasticParams,MemSzElast));
     if (maxNumViscTerms.x + maxNumViscTerms.y > 0)
-      tledCheckCUDAErrors(cudaBindTexture(0,txNumProny,d_NumProny,MemSzProny));
+      tledCheckCUDAErrors(tledBindTextureSymbol(txNumProny,d_NumProny,MemSzProny));
     if (maxNumViscTerms.x > 0) {
-      tledCheckCUDAErrors(cudaBindTexture(0,txEulerIso,d_bkwdEulerIso,MemSzEulerI));
-      tledCheckCUDAErrors(cudaBindTexture(0,txStateIso,d_StressStateIso,MemSzStateI));
+      tledCheckCUDAErrors(tledBindTextureSymbol(txEulerIso,d_bkwdEulerIso,MemSzEulerI));
+      tledCheckCUDAErrors(tledBindTextureSymbol(txStateIso,d_StressStateIso,MemSzStateI));
     }
     if (maxNumViscTerms.y > 0) {
-      tledCheckCUDAErrors(cudaBindTexture(0,txEulerVol,d_bkwdEulerVol,MemSzEulerV));
-      tledCheckCUDAErrors(cudaBindTexture(0,txStateVol,d_StressStateVol,MemSzStateV));
+      tledCheckCUDAErrors(tledBindTextureSymbol(txEulerVol,d_bkwdEulerVol,MemSzEulerV));
+      tledCheckCUDAErrors(tledBindTextureSymbol(txStateVol,d_StressStateVol,MemSzStateV));
     }
     if (ANP) {
-      tledCheckCUDAErrors(cudaBindTexture(0,txPa,d_Pa,MemSzPa));
-      tledCheckCUDAErrors(cudaBindTexture(0,txVa,d_Va,MemSzPa));
+      tledCheckCUDAErrors(tledBindTextureSymbol(txPa,d_Pa,MemSzPa));
+      tledCheckCUDAErrors(tledBindTextureSymbol(txVa,d_Va,MemSzPa));
     }
   }
 
-  tledCheckCUDAErrors(cudaBindTexture(0,txNodeMap,d_NodeMap,MemSzNodeMap));   
-  tledCheckCUDAErrors(cudaBindTexture(0,txCD,d_CD,MemSzU));
-  tledCheckCUDAErrors(cudaBindTexture(0,txFixMask,d_FixMask,MemSzMask));
-  tledCheckCUDAErrors(cudaBindTexture(0,txUload,d_Uload,MemSzU));
-  tledCheckCUDAErrors(cudaBindTexture(0,txDispMask,d_DispMask,MemSzMask));
-  tledCheckCUDAErrors(cudaBindTexture(0,txF4Fext,d_R,MemSzU));
-  tledCheckCUDAErrors(cudaBindTexture(0,txNodeCds,d_NodeCds,MemSzU));
+  tledCheckCUDAErrors(tledBindTextureSymbol(txNodeMap,d_NodeMap,MemSzNodeMap));   
+  tledCheckCUDAErrors(tledBindTextureSymbol(txCD,d_CD,MemSzU));
+  tledCheckCUDAErrors(tledBindTextureSymbol(txFixMask,d_FixMask,MemSzMask));
+  tledCheckCUDAErrors(tledBindTextureSymbol(txUload,d_Uload,MemSzU));
+  tledCheckCUDAErrors(tledBindTextureSymbol(txDispMask,d_DispMask,MemSzMask));
+  tledCheckCUDAErrors(tledBindTextureSymbol(txF4Fext,d_R,MemSzU));
+  tledCheckCUDAErrors(tledBindTextureSymbol(txNodeCds,d_NodeCds,MemSzU));
    
   delete NInd;
   delete[] EPN;

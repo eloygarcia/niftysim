@@ -32,7 +32,10 @@ tledNewmarkTimeStepperGPU::tledNewmarkTimeStepperGPU(const int numNodes, const f
   tledCUDAHelpers::AllocateDeviceMemory(_GetOnDeviceRepresentation());
   
   tledCUDAHelpers::CopyToDevice(mdp_M, M, numNodes);
-  tledCheckCUDAErrors(cudaBindTexture(0, tledNewmarkTimeStepper_kernels::tx_M, mdp_M, this->GetNumberOfNodes()*sizeof(float)));    
+  
+  // tledCheckCUDAErrors(cudaBindTexture(0, tledNewmarkTimeStepper_kernels::tx_M, mdp_M, this->GetNumberOfNodes()*sizeof(float)));    
+  tledCheckCUDAErrors(tledBindTextureSymbol(tledNewmarkTimeStepper_kernels::tx_M, mdp_M, this->GetNumberOfNodes()*sizeof(float)));    
+  
   tledCheckCUDAErrors(cudaMemcpyToSymbol(tledNewmarkTimeStepper_kernels::c_Alpha, &alpha, sizeof(float)));
   tledCheckCUDAErrors(cudaMemcpyToSymbol(tledNewmarkTimeStepper_kernels::c_Dt, &dt, sizeof(float)));
 

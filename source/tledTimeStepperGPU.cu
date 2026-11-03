@@ -21,6 +21,8 @@
 
 #include <algorithm>
 
+#include "tledTextureCompatibility.h"
+
 void tledTimeStepperGPU::ConvertToHostFloatArray(float *p_outBuffer, float4 *hp_tmpBuffer, const float4 *dp_deviceArray, const int numNodes) {
   float4 const *pc_nv4;
   float *p_out;
@@ -40,7 +42,7 @@ void tledTimeStepperGPU::RetrieveSolutionFromDevice() {
 
 void tledTimeStepperGPU::FinishTimeStep() {
   std::iter_swap(&mdp_NextDisplacements, &mdp_CurrentDisplacements);
-  tledCheckCUDAErrors(cudaBindTexture(0, txUcurr, mdp_CurrentDisplacements, GetNumberOfNodes()*sizeof(float4)));  
+  tledCheckCUDAErrors(tledBindTextureSymbol(txUcurr, mdp_CurrentDisplacements, GetNumberOfNodes()*sizeof(float4)));  
 }
 
 void tledTimeStepperGPU::SetCurrentDisplacements(const float U[]) {
@@ -63,7 +65,7 @@ tledTimeStepperGPU::tledTimeStepperGPU(const int numNodes) : Superclass(numNodes
   tledCUDAHelpers::AllocateHostMemory(mp_HostDeviceCopyBuffer, numNodes);
 
   tledCheckCUDAErrors(cudaMemset(mdp_CurrentDisplacements, 0, sizeof(float4)*GetNumberOfNodes()));
-  tledCheckCUDAErrors(cudaBindTexture(0, txUcurr, mdp_CurrentDisplacements, GetNumberOfNodes()*sizeof(float4)));
+  tledCheckCUDAErrors(tledBindTextureSymbol(txUcurr, mdp_CurrentDisplacements, GetNumberOfNodes()*sizeof(float4)));
 }
 
 tledTimeStepperGPU::~tledTimeStepperGPU() {

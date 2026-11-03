@@ -20,11 +20,20 @@
 #include "tledShellMaterial_kernels.h"
 #include "tledCUDAHelpers.h"
 
+#include "tledTextureCompatibility.h"
+
 namespace tledShellSolver_kernels {
-  texture<int2, 1, cudaReadModeElementType> tx_NodeElementVertexLookupBaseIndex;
-  texture<int, 1, cudaReadModeElementType> tx_NodeIndexLookupTable;
-  texture<int, 1, cudaReadModeElementType> tx_NodeElementVertexLookupTable;
-  texture<float4, 1, cudaReadModeElementType> tx_ElementVertexForces;  
+  #ifndef TLED_USE_TEXTURE_OBJECTS
+    texture<int2, 1, cudaReadModeElementType> tx_NodeElementVertexLookupBaseIndex;
+    texture<int, 1, cudaReadModeElementType> tx_NodeIndexLookupTable;
+    texture<int, 1, cudaReadModeElementType> tx_NodeElementVertexLookupTable;
+    texture<float4, 1, cudaReadModeElementType> tx_ElementVertexForces;  
+  #else
+    __device__ cudaTextureObject_t tx_NodeElementVertexLookupBaseIndex;
+    __device__ cudaTextureObject_t tx_NodeIndexLookupTable;
+    __device__ cudaTextureObject_t tx_NodeElementVertexLookupTable;
+    __device__ cudaTextureObject_t tx_ElementVertexForces;
+  #endif
 
   template <class TElement, class TMaterial>
   __global__ void ComputeNewForces(float4 *gp_F, typename TElement::GPUElement *gp_elements, const typename TMaterial::GPUMaterial *gpc_materialParameters, const int numElements) {
@@ -48,20 +57,24 @@ namespace tledShellSolver_kernels {
       float4 f;
       
       {
-	const int2 indBnds = tex1Dfetch(tx_NodeElementVertexLookupBaseIndex, nInd);
+	// const int2 indBnds = tex1Dfetch(tx_NodeElementVertexLookupBaseIndex, nInd);
+  const int2 indBnds = tledTexFetch<int2>(tx_NodeElementVertexLookupBaseIndex, nInd);
 	
 	f = make_float4(0, 0, 0, 0);
 	for (int ltbInd = indBnds.x; ltbInd < indBnds.y; ltbInd++) {
-	  const int vtxInd = tex1Dfetch(tx_NodeElementVertexLookupTable, ltbInd);
+	  // const int vtxInd = tex1Dfetch(tx_NodeElementVertexLookupTable, ltbInd);
+    const int vtxInd = tledTexFetch<int>(tx_NodeElementVertexLookupTable, ltbInd);
 
-	  f += tex1Dfetch(tx_ElementVertexForces, vtxInd);
+	  // f += tex1Dfetch(tx_ElementVertexForces, vtxInd);
+    f += tledTexFetch<float4>(tx_ElementVertexForces, vtxInd);
 	}
       }
 
       tledCudaAssert(f.w == 0);
 
       {
-	const int globalNInd = tex1Dfetch(tx_NodeIndexLookupTable, nInd);
+	// const int globalNInd = tex1Dfetch(tx_NodeIndexLookupTable, nInd);
+  const int globalNInd = tledTexFetch<int>(tx_NodeIndexLookupTable, nInd);
 
 	tledCudaAssert(globalNInd >= 0 && globalNInd < c_NumNodes);
 	gp_f[globalNInd] -= f;

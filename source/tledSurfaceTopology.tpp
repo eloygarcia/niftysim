@@ -28,7 +28,7 @@ void tledSurfaceTopology<TSurface>::ComputeEdges() {
   using namespace tledVectorArithmetic;
   typedef std::map<std::pair<int, int>, int, _EdgeComparator> __EdgeMap;
 
-  std::vector<int>::const_iterator ic_fInd;
+  //std::vector<int>::const_iterator ic_fInd;
   __EdgeMap edgeMap;
     	
   m_FacetEdges.reserve(this->GetSurface().GetNumberOfFacets());  

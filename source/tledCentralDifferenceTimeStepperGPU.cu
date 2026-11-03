@@ -57,7 +57,10 @@ tledCentralDifferenceTimeStepperGPU::tledCentralDifferenceTimeStepperGPU(const i
     this->GetHostDeviceCopyBuffer()[node].z = alpha*M[node]*this->GetHostDeviceCopyBuffer()[node].x/2/dt - this->GetHostDeviceCopyBuffer()[node].y/2;
   }  
   tledCUDAHelpers::CopyToDevice(mdp_CD, this->GetHostDeviceCopyBuffer(), numNodes);
-  tledCheckCUDAErrors(cudaBindTexture(0, tledCentralDifferenceTimeStepper_kernels::tx_CD, mdp_CD, GetNumberOfNodes()*sizeof(float4)));
+  
+  //tledCheckCUDAErrors(cudaBindTexture(0, tledCentralDifferenceTimeStepper_kernels::tx_CD, mdp_CD, GetNumberOfNodes()*sizeof(float4)));
+  tledCheckCUDAErrors(tledBindTextureSymbol(tledCentralDifferenceTimeStepper_kernels::tx_CD, mdp_CD, GetNumberOfNodes()*sizeof(float4)));
+  //tledCheckCUDAErrors(cudaMemcpyToSymbol(tledCentralDifferenceTimeStepper_kernels::tx_CD, &h_tx_CD, sizeof(cudaTextureObject_t)));
 
   tledCheckCUDAErrors(cudaMemset(mdp_PreviousDisplacements, 0, sizeof(float4)*GetNumberOfNodes()));
   _UpdateDeviceDataStructure();  

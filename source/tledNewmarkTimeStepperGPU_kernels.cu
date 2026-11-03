@@ -20,8 +20,14 @@
 #include "tledCUDA_operators.h"
 #include "tledCUDAHelpers.h"
 
+#include "tledTextureCompatibility.h"
+
 namespace tledNewmarkTimeStepper_kernels {
-  texture<float, 1, cudaReadModeElementType> tx_M;
+  #ifndef TLED_USE_TEXTURE_OBJECTS
+    texture<float, 1, cudaReadModeElementType> tx_M;
+  #else 
+    __device__ cudaTextureObject_t tx_M;
+  #endif
 
   __device__ __constant__ float c_Dt;
   __device__ __constant__ float c_Alpha;
@@ -32,7 +38,9 @@ namespace tledTimeStepper_kernels {
   __device__ float3 ComputeNodalDisplacement<tledNewmarkTimeStepperGPU::SolutionVariables>(tledNewmarkTimeStepperGPU::SolutionVariables *p_sols, const int nodeInd, const float3 &nodeEffectiveF) {
     using namespace tledNewmarkTimeStepper_kernels;
 
-    const float m = tex1Dfetch(tx_M, nodeInd);
+    // const float m = tex1Dfetch(tx_M, nodeInd);
+    const float m = tledTexFetch<float>(tx_M, nodeInd);
+
     const float4 ucurr = tledSolverGPU_kernels::GetCurrentDisplacement(nodeInd);    
     const float4 aprev = p_sols->PreviousAccelerations[nodeInd];
     const float4 vprev = p_sols->PreviousVelocities[nodeInd];

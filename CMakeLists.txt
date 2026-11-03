@@ -32,6 +32,8 @@ OPTION(USE_NAMESPACE_STD "Enables using namespace std directive in tledSimulator
 OPTION(BUILD_DOXYGEN_DOCS "Create Doxygen API documentation (requires doxygen)" OFF)
 OPTION(BUILD_NIFTYSIM_TESTS "Build unit tests" OFF)
 
+option(TLED_USE_TEXTURE_OBJECTS "Use CUDA texture objects" OFF)
+
 IF (USE_CUDA) 
   OPTION(USE_GPU_GP_CONTACT "Use general-purpose CUDA contact modelling code (requires a CUDA device with Fermi architecture or newer, CUDA toolkit version >= 4.2). Please set NIFTYSIM_CUDA_{ARCH,CODE} according to your hardware." OFF)   
 ENDIF (USE_CUDA)

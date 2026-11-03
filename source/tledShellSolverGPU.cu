@@ -277,18 +277,30 @@ void tledShellSolverGPU::_ElementSetImpl<TShellElement>::FreeGPU() {
 
 template <class TShellElement>
 void tledShellSolverGPU::_ElementSetImpl<TShellElement>::_InitDisplacementTextures() {
+  /*
   tledCheckCUDAErrors(cudaBindTexture(0, tledShellSolver_kernels::tx_NodeElementVertexLookupBaseIndex, mdp_NodeElementVertexLookupBaseIndex, sizeof(int2)*m_NumberOfNodes));
   tledCheckCUDAErrors(cudaBindTexture(0, tledShellSolver_kernels::tx_NodeElementVertexLookupTable, mdp_NodeElementVertexLookupTable, sizeof(int)*m_NodeElementVertexLookupTableSize));
   tledCheckCUDAErrors(cudaBindTexture(0, tledShellSolver_kernels::tx_ElementVertexForces, mdp_ShellElementForces, sizeof(float4)*TShellElement::Facet::NumberOfVertices*this->GetNumberOfElements()));
   tledCheckCUDAErrors(cudaBindTexture(0, tledShellSolver_kernels::tx_NodeIndexLookupTable, mdp_NodeIndexLookupTable, sizeof(int)*m_NumberOfNodes));
+  */
+  tledCheckCUDAErrors(tledBindTextureSymbol(tledShellSolver_kernels::tx_NodeElementVertexLookupBaseIndex, mdp_NodeElementVertexLookupBaseIndex, sizeof(int2)*m_NumberOfNodes));
+  tledCheckCUDAErrors(tledBindTextureSymbol(tledShellSolver_kernels::tx_NodeElementVertexLookupTable, mdp_NodeElementVertexLookupTable, sizeof(int)*m_NodeElementVertexLookupTableSize));
+  tledCheckCUDAErrors(tledBindTextureSymbol(tledShellSolver_kernels::tx_ElementVertexForces, mdp_ShellElementForces, sizeof(float4)*TShellElement::Facet::NumberOfVertices*this->GetNumberOfElements()));
+  tledCheckCUDAErrors(tledBindTextureSymbol(tledShellSolver_kernels::tx_NodeIndexLookupTable, mdp_NodeIndexLookupTable, sizeof(int)*m_NumberOfNodes));
 }
 
 template <>
 void tledShellSolverGPU::_ElementSetImpl<tledElementShellBSTP1>::_InitDisplacementTextures() {
+  /*
   tledCheckCUDAErrors(cudaBindTexture(0, tledShellSolver_kernels::tx_NodeElementVertexLookupBaseIndex, mdp_NodeElementVertexLookupBaseIndex, sizeof(int2)*m_NumberOfNodes));
   tledCheckCUDAErrors(cudaBindTexture(0, tledShellSolver_kernels::tx_NodeElementVertexLookupTable, mdp_NodeElementVertexLookupTable, sizeof(int)*m_NodeElementVertexLookupTableSize));
   tledCheckCUDAErrors(cudaBindTexture(0, tledShellSolver_kernels::tx_ElementVertexForces, mdp_ShellElementForces, sizeof(float4)*3*2*this->GetNumberOfElements()));
   tledCheckCUDAErrors(cudaBindTexture(0, tledShellSolver_kernels::tx_NodeIndexLookupTable, mdp_NodeIndexLookupTable, sizeof(int)*m_NumberOfNodes));
+  */
+  tledCheckCUDAErrors(tledBindTextureSymbol(tledShellSolver_kernels::tx_NodeElementVertexLookupBaseIndex, mdp_NodeElementVertexLookupBaseIndex, sizeof(int2)*m_NumberOfNodes));
+  tledCheckCUDAErrors(tledBindTextureSymbol(tledShellSolver_kernels::tx_NodeElementVertexLookupTable, mdp_NodeElementVertexLookupTable, sizeof(int)*m_NodeElementVertexLookupTableSize));
+  tledCheckCUDAErrors(tledBindTextureSymbol(tledShellSolver_kernels::tx_ElementVertexForces, mdp_ShellElementForces, sizeof(float4)*3*2*this->GetNumberOfElements()));
+  tledCheckCUDAErrors(tledBindTextureSymbol(tledShellSolver_kernels::tx_NodeIndexLookupTable, mdp_NodeIndexLookupTable, sizeof(int)*m_NumberOfNodes));
 }
 
 template <class TElementSet>

@@ -22,14 +22,23 @@
 
 #include "tledCentralDifferenceTimeStepperGPU_kernels.cu"
 
+#include "tledTextureCompatibility.h"
+
 namespace tledCentralDifferenceTimeStepper_kernels {
-  texture<float4, 1, cudaReadModeElementType> tx_CD;
+  #ifndef TLED_USE_TEXTURE_OBJECTS
+     texture<float4, 1, cudaReadModeElementType> tx_CD;
+  #else 
+    __device__  cudaTextureObject_t tx_CD;
+  #endif
 }
 
 namespace tledTimeStepper_kernels {
   template <>
   __device__ float3 ComputeNodalDisplacement<tledCentralDifferenceTimeStepperGPU::SolutionVariables>(tledCentralDifferenceTimeStepperGPU::SolutionVariables *p_sols, const int nodeInd, const float3 &nodeEffectiveF) {
-    const float4 CD = tex1Dfetch(tledCentralDifferenceTimeStepper_kernels::tx_CD, nodeInd);
+    
+    // const float4 CD = tex1Dfetch(tledCentralDifferenceTimeStepper_kernels::tx_CD, nodeInd);
+    const float4 CD = tledTexFetch<float4>(tledCentralDifferenceTimeStepper_kernels::tx_CD, nodeInd);
+    
     const float4 ucurr = tledSolverGPU_kernels::GetCurrentDisplacement(nodeInd);
 
     float3 unext;

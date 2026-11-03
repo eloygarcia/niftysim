@@ -23,6 +23,8 @@
 #include <limits>
 #include <math.h>
 
+#include "tledTextureCompatibility.h"
+
 using namespace std;
 using namespace tledSolverGPU_ROM_kernels;
 
@@ -334,28 +336,28 @@ void tledSolverGPU_ROM::Init(tledModel* Model)
    cudaMemset(d_Divergence,0,MemSzDiv);
    
    // Bind textures
-   cudaBindTexture(0,txDhDx,d_DhDx,MemSzDhDx);
-   cudaBindTexture(0,txEInd,d_EInd,MemSzEInd);
-   cudaBindTexture(0,txHG,d_HG,MemSzHG);
-   cudaBindTexture(0,txNodeMap,d_NodeMap,MemSzNodeMap);
-   cudaBindTexture(0,txFCds,d_FCds,MemSzFCds);
-   cudaBindTexture(0,txFEl,d_FEl,MemSzFEl);
-   cudaBindTexture(0,txFixMask,d_FixMask,MemSzMask);
-   cudaBindTexture(0,txUload,d_Uload,MemSzU);
-   cudaBindTexture(0,txDispMask,d_DispMask,MemSzMask);
-   cudaBindTexture(0,txF4Fext,d_Fext,MemSzU);
-   cudaBindTexture(0,txVol_MType_K,d_Vol_MType_K,MemSzVol);
-   cudaBindTexture(0,txElasticParams,d_ElasticParams,MemSzElast);
-   cudaBindTexture(0,txNumProny,d_NumProny,MemSzProny);
-   cudaBindTexture(0,txEulerIso,d_bkwdEulerIso,MemSzEulerI);
-   cudaBindTexture(0,txEulerVol,d_bkwdEulerVol,MemSzEulerV);
-   cudaBindTexture(0,txStateIso,d_StressStateIso,MemSzStateI);
-   cudaBindTexture(0,txStateVol,d_StressStateVol,MemSzStateV);
-   cudaBindTexture(0,txPa,d_Pa,MemSzPa);
-   cudaBindTexture(0,txVa,d_Va,MemSzPa);
-   cudaBindTexture(0,txUnextV,d_UnextV,MemSzf);
-   cudaBindTexture(0,txMfc,d_Mfc,MemSzM);
-   cudaBindTexture(0,txNodeCds,d_NodeCds,MemSzU);
+   tledBindTextureSymbol(txDhDx,d_DhDx,MemSzDhDx);
+   tledBindTextureSymbol(txEInd,d_EInd,MemSzEInd);
+   tledBindTextureSymbol(txHG,d_HG,MemSzHG);
+   tledBindTextureSymbol(txNodeMap,d_NodeMap,MemSzNodeMap);
+   tledBindTextureSymbol(txFCds,d_FCds,MemSzFCds);
+   tledBindTextureSymbol(txFEl,d_FEl,MemSzFEl);
+   tledBindTextureSymbol(txFixMask,d_FixMask,MemSzMask);
+   tledBindTextureSymbol(txUload,d_Uload,MemSzU);
+   tledBindTextureSymbol(txDispMask,d_DispMask,MemSzMask);
+   tledBindTextureSymbol(txF4Fext,d_Fext,MemSzU);
+   tledBindTextureSymbol(txVol_MType_K,d_Vol_MType_K,MemSzVol);
+   tledBindTextureSymbol(txElasticParams,d_ElasticParams,MemSzElast);
+   tledBindTextureSymbol(txNumProny,d_NumProny,MemSzProny);
+   tledBindTextureSymbol(txEulerIso,d_bkwdEulerIso,MemSzEulerI);
+   tledBindTextureSymbol(txEulerVol,d_bkwdEulerVol,MemSzEulerV);
+   tledBindTextureSymbol(txStateIso,d_StressStateIso,MemSzStateI);
+   tledBindTextureSymbol(txStateVol,d_StressStateVol,MemSzStateV);
+   tledBindTextureSymbol(txPa,d_Pa,MemSzPa);
+   tledBindTextureSymbol(txVa,d_Va,MemSzPa);
+   tledBindTextureSymbol(txUnextV,d_UnextV,MemSzf);
+   tledBindTextureSymbol(txMfc,d_Mfc,MemSzM);
+   tledBindTextureSymbol(txNodeCds,d_NodeCds,MemSzU);
    
    delete NInd;
    delete EPN;
@@ -979,8 +981,8 @@ void tledSolverGPU_ROM::PerformStep()
    d_Uprev = d_Ucurr;
    d_Ucurr = d_Unext;
    d_Unext = d_Utemp;
-   cudaBindTexture(0,txUprev,d_Uprev,MemSzU);
-   cudaBindTexture(0,txUcurr,d_Ucurr,MemSzU);
+   tledBindTextureSymbol(txUprev,d_Uprev,MemSzU);
+   tledBindTextureSymbol(txUcurr,d_Ucurr,MemSzU);
    
    // Set up execution parameters
    const unsigned int BlockSzP1 = 128;

@@ -22,13 +22,15 @@
 #include "tledDeviceDeclarations.h"
 #include "float.h"
 
+#include "tledTextureCompatibility.h"
+
 namespace tledSolverGPU_ROM_kernels
 {
 
 // Compute 2nd Piola-Kirchhoff stress - linear elastic model
 __device__ void SPK_LE(const unsigned int tid, float3* C_a, float3* C_b, float3* SPK_a, float3* SPK_b)
 {
-   float4 tempF4 = tex1Dfetch(txElasticParams,tid);	// M = tempF4.x, K = tempF4.y
+   float4 tempF4 = tledTexFetch<float4>(txElasticParams,tid);	// M = tempF4.x, K = tempF4.y
    // 2nd Piola-Kirchhoff stress
    *SPK_a = make_float3(tempF4.x*(*C_a).x + tempF4.y*((*C_a).y + (*C_a).z) - tempF4.z,
                         tempF4.x*(*C_a).y + tempF4.y*((*C_a).x + (*C_a).z) - tempF4.z,
@@ -41,7 +43,7 @@ __device__ void SPK_LE(const unsigned int tid, float3* C_a, float3* C_b, float3*
 // Compute 2nd Piola-Kirchhoff stress - neo-Hookean hyperelastic model
 __device__ void SPK_NH(const unsigned int tid, float3* C_a, float3* C_b, float J, float3* SPK_a, float3* SPK_b)
 {
-   float4 tempF4 = tex1Dfetch(txElasticParams,tid);	// M = tempF4.x, K = tempF4.y
+   float4 tempF4 = tledTexFetch<float4>(txElasticParams,tid);	// M = tempF4.x, K = tempF4.y
    float x1 = powf(J,-2.0f/3.0f)*tempF4.x;
    float x2 = (tempF4.y*J*(J-1.0f) - x1*((*C_a).x+(*C_a).y+(*C_a).z)/3.0f)/
             ((*C_a).x*((*C_a).y*(*C_a).z - (*C_b).y*(*C_b).y) - (*C_a).y*(*C_b).z*(*C_b).z - 
@@ -62,9 +64,9 @@ __device__ void SPK_TI(const unsigned int tid, float3* C_a, float3* C_b, float J
 {
    // 2 MParams arrays -> need all of 1st, but only first two of 2nd. Get 2nd first, and store in a float2
    // variable, then get 1st -> confusing, but minimises registers
-   float4 tempF4 = tex1Dfetch(txElasticParams,2*tid+1);
+   float4 tempF4 = tledTexFetch<float4>(txElasticParams,2*tid+1);
    float2 tempF2 = make_float2(tempF4.x,tempF4.y);
-   tempF4 = tex1Dfetch(txElasticParams,2*tid);
+   tempF4 = tledTexFetch<float4>(txElasticParams,2*tid);
    // Resulting param list:
    // Mu = tempF4.x
    // Kappa = tempF4.y
@@ -100,7 +102,7 @@ __device__ void SPK_TI(const unsigned int tid, float3* C_a, float3* C_b, float J
 // Compute 2nd Piola-Kirchhoff stress - Arruda-Boyce hyperelastic model
 __device__ void SPK_AB(const unsigned int tid, float3* C_a, float3* C_b, float J, float3* SPK_a, float3* SPK_b)
 {
-   float4 tempF4 = tex1Dfetch(txElasticParams,tid);	// M = tempF4.x, Lm = tempF4.y, K = tempF4.z
+   float4 tempF4 = tledTexFetch<float4>(txElasticParams,tid);	// M = tempF4.x, Lm = tempF4.y, K = tempF4.z
    float I1b = powf(J,-2.0f/3.0f)*((*C_a).x+(*C_a).y+(*C_a).z);
    // c1 = 1/2; c2 = 1/20; c3 = 11/1050; c4 = 19/7000; c5 = 519/673750;
    float Lm2 = tempF4.y*tempF4.y;
@@ -136,9 +138,9 @@ __device__ void SPK_PY(const unsigned int tid, float3* C_a, float3* C_b, float J
 {
    // 2 MParams arrays -> need all of 1st, but only first two of 2nd. Get 2nd first, and store in a float2
    // variable, then get 1st -> confusing, but minimises registers
-   float4 tempF4 = tex1Dfetch(txElasticParams,2*tid+1);
+   float4 tempF4 = tledTexFetch<float4>(txElasticParams,2*tid+1);
    float2 tempF2 = make_float2(tempF4.x,tempF4.y);
-   tempF4 = tex1Dfetch(txElasticParams,2*tid);
+   tempF4 = tledTexFetch<float4>(txElasticParams,2*tid);
    // Resulting param list:
    // c10 = tempF4.x
    // c01 = tempF4.y
@@ -191,7 +193,7 @@ __device__ void SPK_NHV(const unsigned int tid, float3* C_a, float3* C_b, float 
    float C23 = (*C_b).y;
    float C13 = (*C_b).z;
 
-   float4 tempF4 = tex1Dfetch(txElasticParams,tid);	// M = tempF4.x, K = tempF4.y
+   float4 tempF4 = tledTexFetch<float4>(txElasticParams,tid);	// M = tempF4.x, K = tempF4.y
    float x1 = powf(J,-2.0f/3.0f)*tempF4.x;
    float invdetC = 1.0f/(C11*(C22*C33 - C23*C23) - C22*C13*C13 - C12*(C33*C12 - 2.0f*C13*C23));
    float x2 = -x1*(C11+C22+C33)/3.0f*invdetC;
@@ -217,20 +219,20 @@ __device__ void SPK_NHV(const unsigned int tid, float3* C_a, float3* C_b, float 
    // Reuse C-variables for summing state variables
    // --> not required anymore, and saves declaring another 6 floats for this purpose
    C11 = 0.0f; C22 = 0.0f; C33 = 0.0f; C12 = 0.0f; C23 = 0.0f; C13 = 0.0f;
-   int2 NumProny = tex1Dfetch(txNumProny,tid);
+   int2 NumProny = tledTexFetch<int2>(txNumProny,tid);
    float2 euler;
    // Isochoric
    for (int i = 0; i < NumProny.x; i++)
    {
-      tempF4 = tex1Dfetch(txStateIso,tid*2*c_maxNumViscTerms.x + i);	// Get state variables
-      euler = tex1Dfetch(txEulerIso,tid*c_maxNumViscTerms.x + i);	// Get backward Euler coeffs
+      tempF4 = tledTexFetch<float4>(txStateIso,tid*2*c_maxNumViscTerms.x + i);	// Get state variables
+      euler = tledTexFetch<float2>(txEulerIso,tid*c_maxNumViscTerms.x + i);	// Get backward Euler coeffs
       tempF4.x *= euler.y; tempF4.x += euler.x*SiE11; C11 += tempF4.x;
       tempF4.y *= euler.y; tempF4.y += euler.x*SiE22; C22 += tempF4.y;
       tempF4.z *= euler.y; tempF4.z += euler.x*SiE33; C33 += tempF4.z;
       tempF4.w *= euler.y; tempF4.w += euler.x*SiE12; C12 += tempF4.w;
       g_StressStateIso[tid*2*c_maxNumViscTerms.x + i] = tempF4;	// Write updated state variables to memory
       
-      tempF4 = tex1Dfetch(txStateIso,tid*2*c_maxNumViscTerms.x + i + 1);	// Get state variables
+      tempF4 = tledTexFetch<float4>(txStateIso,tid*2*c_maxNumViscTerms.x + i + 1);	// Get state variables
       tempF4.x *= euler.y; tempF4.x += euler.x*SiE23; C23 += tempF4.x;
       tempF4.y *= euler.y; tempF4.y += euler.x*SiE13; C13 += tempF4.y;
       tempF4.z = 0.0f;
@@ -240,15 +242,15 @@ __device__ void SPK_NHV(const unsigned int tid, float3* C_a, float3* C_b, float 
    // Volumetric
    for (int i = 0; i < NumProny.y; i++)
    {
-      tempF4 = tex1Dfetch(txStateVol,tid*2*c_maxNumViscTerms.y + i);
-      euler = tex1Dfetch(txEulerVol,tid*c_maxNumViscTerms.y + i);
+      tempF4 = tledTexFetch<float4>(txStateVol,tid*2*c_maxNumViscTerms.y + i);
+      euler = tledTexFetch<float2>(txEulerVol,tid*c_maxNumViscTerms.y + i);
       tempF4.x *= euler.y; tempF4.x += euler.x*SvE11; C11 += tempF4.x;
       tempF4.y *= euler.y; tempF4.y += euler.x*SvE22; C22 += tempF4.y;
       tempF4.z *= euler.y; tempF4.z += euler.x*SvE33; C33 += tempF4.z;
       tempF4.w *= euler.y; tempF4.w += euler.x*SvE12; C12 += tempF4.w;
       g_StressStateVol[tid*2*c_maxNumViscTerms.y + i] = tempF4;
       
-      tempF4 = tex1Dfetch(txStateVol,tid*2*c_maxNumViscTerms.y + i + 1);
+      tempF4 = tledTexFetch<float4>(txStateVol,tid*2*c_maxNumViscTerms.y + i + 1);
       tempF4.x *= euler.y; tempF4.x += euler.x*SvE23; C23 += tempF4.x;
       tempF4.y *= euler.y; tempF4.y += euler.x*SvE13; C13 += tempF4.y;
       tempF4.z = 0.0f;
@@ -278,9 +280,9 @@ __device__ void SPK_TIV(const unsigned int tid, float3* C_a, float3* C_b, float 
 
    // 2 MParams arrays -> need all of 1st, but only first two of 2nd. Get 2nd first, and store in a float2
    // variable, then get 1st -> confusing, but minimises registers
-   float4 tempF4 = tex1Dfetch(txElasticParams,2*tid+1);
+   float4 tempF4 = tledTexFetch<float4>(txElasticParams,2*tid+1);
    float2 tempF2 = make_float2(tempF4.x,tempF4.y);
-   tempF4 = tex1Dfetch(txElasticParams,2*tid);
+   tempF4 = tledTexFetch<float4>(txElasticParams,2*tid);
    // Resulting param list:
    // Mu = tempF4.x
    // Kappa = tempF4.y
@@ -318,19 +320,19 @@ __device__ void SPK_TIV(const unsigned int tid, float3* C_a, float3* C_b, float 
    // Reuse C-variables for summing state variables
    // --> not required anymore, and saves declaring another 6 floats for this purpose
    C11 = 0.0f; C22 = 0.0f; C33 = 0.0f; C12 = 0.0f; C23 = 0.0f; C13 = 0.0f;
-   int2 NumProny = tex1Dfetch(txNumProny,tid);
+   int2 NumProny = tledTexFetch<int2>(txNumProny,tid);
    // Isochoric
    for (int i = 0; i < NumProny.x; i++)
    {
-      tempF4 = tex1Dfetch(txStateIso,tid*2*c_maxNumViscTerms.x + i);	// Get state variables
-      tempF2 = tex1Dfetch(txEulerIso,tid*c_maxNumViscTerms.x + i);	// Get backward Euler coeffs
+      tempF4 = tledTexFetch<float4>(txStateIso,tid*2*c_maxNumViscTerms.x + i);	// Get state variables
+      tempF2 = tledTexFetch<float2>(txEulerIso,tid*c_maxNumViscTerms.x + i);	// Get backward Euler coeffs
       tempF4.x *= tempF2.y; tempF4.x += tempF2.x*SiE11; C11 += tempF4.x;
       tempF4.y *= tempF2.y; tempF4.y += tempF2.x*SiE22; C22 += tempF4.y;
       tempF4.z *= tempF2.y; tempF4.z += tempF2.x*SiE33; C33 += tempF4.z;
       tempF4.w *= tempF2.y; tempF4.w += tempF2.x*SiE12; C12 += tempF4.w;
       g_StressStateIso[tid*2*c_maxNumViscTerms.x + i] = tempF4;	// Write updated state variables to memory
       
-      tempF4 = tex1Dfetch(txStateIso,tid*2*c_maxNumViscTerms.x + i + 1);	// Get state variables
+      tempF4 = tledTexFetch<float4>(txStateIso,tid*2*c_maxNumViscTerms.x + i + 1);	// Get state variables
       tempF4.x *= tempF2.y; tempF4.x += tempF2.x*SiE23; C23 += tempF4.x;
       tempF4.y *= tempF2.y; tempF4.y += tempF2.x*SiE13; C13 += tempF4.y;
       tempF4.z = 0.0f;
@@ -340,15 +342,15 @@ __device__ void SPK_TIV(const unsigned int tid, float3* C_a, float3* C_b, float 
    // Volumetric
    for (int i = 0; i < NumProny.y; i++)
    {
-      tempF4 = tex1Dfetch(txStateVol,tid*2*c_maxNumViscTerms.y + i);
-      tempF2 = tex1Dfetch(txEulerVol,tid*c_maxNumViscTerms.y + i);
+      tempF4 = tledTexFetch<float4>(txStateVol,tid*2*c_maxNumViscTerms.y + i);
+      tempF2 = tledTexFetch<float2>(txEulerVol,tid*c_maxNumViscTerms.y + i);
       tempF4.x *= tempF2.y; tempF4.x += tempF2.x*SvE11; C11 += tempF4.x;
       tempF4.y *= tempF2.y; tempF4.y += tempF2.x*SvE22; C22 += tempF4.y;
       tempF4.z *= tempF2.y; tempF4.z += tempF2.x*SvE33; C33 += tempF4.z;
       tempF4.w *= tempF2.y; tempF4.w += tempF2.x*SvE12; C12 += tempF4.w;
       g_StressStateVol[tid*2*c_maxNumViscTerms.y + i] = tempF4;
       
-      tempF4 = tex1Dfetch(txStateVol,tid*2*c_maxNumViscTerms.y + i + 1);
+      tempF4 = tledTexFetch<float4>(txStateVol,tid*2*c_maxNumViscTerms.y + i + 1);
       tempF4.x *= tempF2.y; tempF4.x += tempF2.x*SvE23; C23 += tempF4.x;
       tempF4.y *= tempF2.y; tempF4.y += tempF2.x*SvE13; C13 += tempF4.y;
       tempF4.z = 0.0f;
@@ -508,28 +510,28 @@ __global__ void ComputeNewForcesT4_kernel(float4* g_FEl, float4* g_StressStateIs
 	const unsigned int tid = blockIdx.x*blockDim.x + threadIdx.x;
 if (tid < c_NumEls)
 {
-	float4 Vol_MType_K = tex1Dfetch(txVol_MType_K,tid);
+	float4 Vol_MType_K = tledTexFetch<float4>(txVol_MType_K,tid);
 	// Shape function derivatives
 	float Dh[4][3];
 	float4 tempF4;
-	tempF4 = tex1Dfetch(txDhDx,3*tid);
+	tempF4 = tledTexFetch<float4>(txDhDx,3*tid);
 	Dh[0][0] = tempF4.x; Dh[1][0] = tempF4.y; Dh[2][0] = tempF4.z; Dh[3][0] = tempF4.w;
-	tempF4 = tex1Dfetch(txDhDx,3*tid + 1);
+	tempF4 = tledTexFetch<float4>(txDhDx,3*tid + 1);
 	Dh[0][1] = tempF4.x; Dh[1][1] = tempF4.y; Dh[2][1] = tempF4.z; Dh[3][1] = tempF4.w;
-	tempF4 = tex1Dfetch(txDhDx,3*tid + 2);
+	tempF4 = tledTexFetch<float4>(txDhDx,3*tid + 2);
 	Dh[0][2] = tempF4.x; Dh[1][2] = tempF4.y; Dh[2][2] = tempF4.z; Dh[3][2] = tempF4.w;
 
 	// Displacements
 	float u[4][3];
 	int4 EInd;
-	EInd = tex1Dfetch(txEInd,tid);
-   tempF4 = tex1Dfetch(txUcurr,EInd.x);
+	EInd = tledTexFetch<int4>(txEInd,tid);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.x);
 	u[0][0] = tempF4.x; u[0][1] = tempF4.y; u[0][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.y);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.y);
 	u[1][0] = tempF4.x; u[1][1] = tempF4.y; u[1][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.z);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.z);
 	u[2][0] = tempF4.x; u[2][1] = tempF4.y; u[2][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.w);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.w);
 	u[3][0] = tempF4.x; u[3][1] = tempF4.y; u[3][2] = tempF4.z;
 
 	// Deformation gradient (transpose of), X = Du + I, Du = u^T*Dh
@@ -633,28 +635,28 @@ __global__ void ComputeElementPressuresT4ANP_kernel(float4* g_FEl)
    const unsigned int tid = blockIdx.x*blockDim.x + threadIdx.x;
 if (tid < c_NumEls)
 {
-   float4 Vol_MType_K = tex1Dfetch(txVol_MType_K,tid);	// Vol = Vol_MType_K.x, K = Vol_MType_K.z
+   float4 Vol_MType_K = tledTexFetch<float4>(txVol_MType_K,tid);	// Vol = Vol_MType_K.x, K = Vol_MType_K.z
    // Shape function derivatives
    float Dh[4][3];
    float4 tempF4;
-   tempF4 = tex1Dfetch(txDhDx,3*tid);
+   tempF4 = tledTexFetch<float4>(txDhDx,3*tid);
    Dh[0][0] = tempF4.x; Dh[1][0] = tempF4.y; Dh[2][0] = tempF4.z; Dh[3][0] = tempF4.w;
-   tempF4 = tex1Dfetch(txDhDx,3*tid + 1);
+   tempF4 = tledTexFetch<float4>(txDhDx,3*tid + 1);
    Dh[0][1] = tempF4.x; Dh[1][1] = tempF4.y; Dh[2][1] = tempF4.z; Dh[3][1] = tempF4.w;
-   tempF4 = tex1Dfetch(txDhDx,3*tid + 2);
+   tempF4 = tledTexFetch<float4>(txDhDx,3*tid + 2);
    Dh[0][2] = tempF4.x; Dh[1][2] = tempF4.y; Dh[2][2] = tempF4.z; Dh[3][2] = tempF4.w;
 
    // Displacements
    float u[4][3];
    int4 EInd;
-   EInd = tex1Dfetch(txEInd,tid);
-   tempF4 = tex1Dfetch(txUcurr,EInd.x);
+   EInd = tledTexFetch<int4>(txEInd,tid);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.x);
    u[0][0] = tempF4.x; u[0][1] = tempF4.y; u[0][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.y);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.y);
    u[1][0] = tempF4.x; u[1][1] = tempF4.y; u[1][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.z);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.z);
    u[2][0] = tempF4.x; u[2][1] = tempF4.y; u[2][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.w);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.w);
    u[3][0] = tempF4.x; u[3][1] = tempF4.y; u[3][2] = tempF4.z;
 
    // Deformation gradient (transpose of), X = Du + I, Du = u^T*Dh
@@ -683,16 +685,16 @@ __global__ void ComputeNodalPressuresT4ANP_kernel(float* g_Pa)
    const unsigned int tid = blockIdx.x*blockDim.x + threadIdx.x;
 if (tid < c_NumNodes)
 {
-   float Va = tex1Dfetch(txVa,tid);
+   float Va = tledTexFetch<float>(txVa,tid);
    float4 tempF4;
    // Gather element pressures
    float Pa = 0.0f;
-   int2 NodeMap = tex1Dfetch(txNodeMap,tid);
+   int2 NodeMap = tledTexFetch<int2>(txNodeMap,tid);
    int2 FCds;
    for (int i = 0; i < NodeMap.y; i++)
    {
-      FCds = tex1Dfetch(txFCds,NodeMap.x + i);	// First val contains element number (all that is required)
-      tempF4 = tex1Dfetch(txFEl,4*FCds.x);	// El pressures are stored in the .w val of first FEl for each El
+      FCds = tledTexFetch<int2>(txFCds,NodeMap.x + i);	// First val contains element number (all that is required)
+      tempF4 = tledTexFetch<float4>(txFEl,4*FCds.x);	// El pressures are stored in the .w val of first FEl for each El
       Pa += tempF4.w;
    }
    // Store Pa/Va
@@ -707,28 +709,28 @@ __global__ void ComputeModifiedElementForcesT4ANP_kernel(float4* g_FEl, float4* 
    const unsigned int tid = blockIdx.x*blockDim.x + threadIdx.x;
 if (tid < c_NumEls)
 {
-   float4 Vol_MType_K = tex1Dfetch(txVol_MType_K,tid);	// Vol = Vol_MType_K.x, MType = Vol_MType_K.y, K = Vol_MType_K.z
+   float4 Vol_MType_K = tledTexFetch<float4>(txVol_MType_K,tid);	// Vol = Vol_MType_K.x, MType = Vol_MType_K.y, K = Vol_MType_K.z
    // Shape function derivatives
    float Dh[4][3];
    float4 tempF4;
-   tempF4 = tex1Dfetch(txDhDx,3*tid);
+   tempF4 = tledTexFetch<float4>(txDhDx,3*tid);
    Dh[0][0] = tempF4.x; Dh[1][0] = tempF4.y; Dh[2][0] = tempF4.z; Dh[3][0] = tempF4.w;
-   tempF4 = tex1Dfetch(txDhDx,3*tid + 1);
+   tempF4 = tledTexFetch<float4>(txDhDx,3*tid + 1);
    Dh[0][1] = tempF4.x; Dh[1][1] = tempF4.y; Dh[2][1] = tempF4.z; Dh[3][1] = tempF4.w;
-   tempF4 = tex1Dfetch(txDhDx,3*tid + 2);
+   tempF4 = tledTexFetch<float4>(txDhDx,3*tid + 2);
    Dh[0][2] = tempF4.x; Dh[1][2] = tempF4.y; Dh[2][2] = tempF4.z; Dh[3][2] = tempF4.w;
 
    // Displacements
    float u[4][3];
    int4 EInd;
-   EInd = tex1Dfetch(txEInd,tid);
-   tempF4 = tex1Dfetch(txUcurr,EInd.x);
+   EInd = tledTexFetch<int4>(txEInd,tid);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.x);
    u[0][0] = tempF4.x; u[0][1] = tempF4.y; u[0][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.y);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.y);
    u[1][0] = tempF4.x; u[1][1] = tempF4.y; u[1][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.z);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.z);
    u[2][0] = tempF4.x; u[2][1] = tempF4.y; u[2][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.w);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.w);
    u[3][0] = tempF4.x; u[3][1] = tempF4.y; u[3][2] = tempF4.z;
 
    // Deformation gradient (transpose of), X = Du + I, Du = u^T*Dh
@@ -748,10 +750,10 @@ if (tid < c_NumEls)
 
    // Compute modified pressure
    float Pm = 0.0f;
-   Pm += tex1Dfetch(txPa,EInd.x);
-   Pm += tex1Dfetch(txPa,EInd.y);
-   Pm += tex1Dfetch(txPa,EInd.z);
-   Pm += tex1Dfetch(txPa,EInd.w);
+   Pm += tledTexFetch<float>(txPa,EInd.x);
+   Pm += tledTexFetch<float>(txPa,EInd.y);
+   Pm += tledTexFetch<float>(txPa,EInd.z);
+   Pm += tledTexFetch<float>(txPa,EInd.w);
    Pm /= 16;
 
    // Compute modified Jacobian
@@ -856,45 +858,45 @@ __global__ void ComputeNewForcesH8_kernel(float4* g_FEl, float4* g_StressStateIs
    const unsigned int tid = blockIdx.x*blockDim.x + threadIdx.x;
 if (tid < c_NumEls)
 {
-   float4 Vol_MType_K = tex1Dfetch(txVol_MType_K,tid);
+   float4 Vol_MType_K = tledTexFetch<float4>(txVol_MType_K,tid);
    // Shape function derivatives
    float Dh[8][3];
    float4 tempF4;
-   tempF4 = tex1Dfetch(txDhDx,6*tid);
+   tempF4 = tledTexFetch<float4>(txDhDx,6*tid);
    Dh[0][0] = tempF4.x; Dh[1][0] = tempF4.y; Dh[2][0] = tempF4.z; Dh[3][0] = tempF4.w;
-   tempF4 = tex1Dfetch(txDhDx,6*tid + 1);
+   tempF4 = tledTexFetch<float4>(txDhDx,6*tid + 1);
    Dh[0][1] = tempF4.x; Dh[1][1] = tempF4.y; Dh[2][1] = tempF4.z; Dh[3][1] = tempF4.w;
-   tempF4 = tex1Dfetch(txDhDx,6*tid + 2);
+   tempF4 = tledTexFetch<float4>(txDhDx,6*tid + 2);
    Dh[0][2] = tempF4.x; Dh[1][2] = tempF4.y; Dh[2][2] = tempF4.z; Dh[3][2] = tempF4.w;
 
-   tempF4 = tex1Dfetch(txDhDx,6*tid + 3);
+   tempF4 = tledTexFetch<float4>(txDhDx,6*tid + 3);
    Dh[4][0] = tempF4.x; Dh[5][0] = tempF4.y; Dh[6][0] = tempF4.z; Dh[7][0] = tempF4.w;
-   tempF4 = tex1Dfetch(txDhDx,6*tid + 4);
+   tempF4 = tledTexFetch<float4>(txDhDx,6*tid + 4);
    Dh[4][1] = tempF4.x; Dh[5][1] = tempF4.y; Dh[6][1] = tempF4.z; Dh[7][1] = tempF4.w;
-   tempF4 = tex1Dfetch(txDhDx,6*tid + 5);
+   tempF4 = tledTexFetch<float4>(txDhDx,6*tid + 5);
    Dh[4][2] = tempF4.x; Dh[5][2] = tempF4.y; Dh[6][2] = tempF4.z; Dh[7][2] = tempF4.w;
 
    // Displacements
    float u[8][3];
    int4 EInd;
-   EInd = tex1Dfetch(txEInd,2*tid);
-   tempF4 = tex1Dfetch(txUcurr,EInd.x);
+   EInd = tledTexFetch<int4>(txEInd,2*tid);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.x);
    u[0][0] = tempF4.x; u[0][1] = tempF4.y; u[0][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.y);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.y);
    u[1][0] = tempF4.x; u[1][1] = tempF4.y; u[1][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.z);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.z);
    u[2][0] = tempF4.x; u[2][1] = tempF4.y; u[2][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.w);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.w);
    u[3][0] = tempF4.x; u[3][1] = tempF4.y; u[3][2] = tempF4.z;
 
-   EInd = tex1Dfetch(txEInd,2*tid+1);
-   tempF4 = tex1Dfetch(txUcurr,EInd.x);
+   EInd = tledTexFetch<int4>(txEInd,2*tid+1);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.x);
    u[4][0] = tempF4.x; u[4][1] = tempF4.y; u[4][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.y);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.y);
    u[5][0] = tempF4.x; u[5][1] = tempF4.y; u[5][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.z);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.z);
    u[6][0] = tempF4.x; u[6][1] = tempF4.y; u[6][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.w);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.w);
    u[7][0] = tempF4.x; u[7][1] = tempF4.y; u[7][2] = tempF4.z;
 
    // // Deformation gradient (transpose of), X = Du + I, Du = u^T*Dh
@@ -989,11 +991,11 @@ if (tid < c_NumEls)
                + (Dh[i][2]*XT02 + Dh[i][0]*XT22)*SPKb.z;
 
       // Hourglass control
-      HG = tex1Dfetch(txHG,tid*16 + 2*i);
+      HG = tledTexFetch<float4>(txHG,tid*16 + 2*i);
       tempF4.x += HG.x*u[0][0] + HG.y*u[1][0] + HG.z*u[2][0] + HG.w*u[3][0];	// Hourglass forces (= HG*u)
       tempF4.y += HG.x*u[0][1] + HG.y*u[1][1] + HG.z*u[2][1] + HG.w*u[3][1];
       tempF4.z += HG.x*u[0][2] + HG.y*u[1][2] + HG.z*u[2][2] + HG.w*u[3][2];
-      HG = tex1Dfetch(txHG,tid*16 + 2*i + 1);
+      HG = tledTexFetch<float4>(txHG,tid*16 + 2*i + 1);
       tempF4.x += HG.x*u[4][0] + HG.y*u[5][0] + HG.z*u[6][0] + HG.w*u[7][0];
       tempF4.y += HG.x*u[4][1] + HG.y*u[5][1] + HG.z*u[6][1] + HG.w*u[7][1];
       tempF4.z += HG.x*u[4][2] + HG.y*u[5][2] + HG.z*u[6][2] + HG.w*u[7][2];
@@ -1011,32 +1013,32 @@ if (tid < c_NumNodes)
 {
    // Gather internal forces
    float4 tempF4 = make_float4(0.0f,0.0f,0.0f,0.0f);
-   int2 NodeMap = tex1Dfetch(txNodeMap,tid);
+   int2 NodeMap = tledTexFetch<int2>(txNodeMap,tid);
    int2 FCds;
    for (int i = 0; i < NodeMap.y; i++)
    {
-      FCds = tex1Dfetch(txFCds,NodeMap.x + i);
-      tempF4 = tempF4 + tex1Dfetch(txFEl,c_NPE*FCds.x + FCds.y);
+      FCds = tledTexFetch<int2>(txFCds,NodeMap.x + i);
+      tempF4 = tempF4 + tledTexFetch<float4>(txFEl,c_NPE*FCds.x + FCds.y);
    }
    g_Fint[tid] = tempF4;
    
    // Compute effective loads   
-   tempF4 = tex1Dfetch(txF4Fext,tid) - tempF4; // Feff = Fext - Fint
+   tempF4 = tledTexFetch<float4>(txF4Fext,tid) - tempF4; // Feff = Fext - Fint
    
    // Convert disp loads and contact disp into force loads, if applicable.
    // NB: Forces and displacements should not both be imposed on a given dof, nor
    // should contacted nodes be otherwise loaded
    // --> if this does happen, priority is 1. contacts, 2. disp loads, 3. forces
-   int4 Mask = tex1Dfetch(txDispMask,tid);
+   int4 Mask = tledTexFetch<int4>(txDispMask,tid);
 
    if (c_numContactCyls > 0)
    {
-      float4 Ucurr = tex1Dfetch(txUcurr,tid);
-      float4 Uprev = tex1Dfetch(txUprev,tid);
-      float M = tex1Dfetch(txMfc,tid);
+      float4 Ucurr = tledTexFetch<float4>(txUcurr,tid);
+      float4 Uprev = tledTexFetch<float4>(txUprev,tid);
+      float M = tledTexFetch<float>(txMfc,tid);
       
       float3 Unext = make_float3(Ucurr.x,Ucurr.y,Ucurr.z);
-      float4 p = tex1Dfetch(txNodeCds,tid) + make_float4(Unext.x,Unext.y,Unext.z,0.0f);
+      float4 p = tledTexFetch<float4>(txNodeCds,tid) + make_float4(Unext.x,Unext.y,Unext.z,0.0f);
       for (int i = 0; i < c_numContactCyls; i++)
       {
          int isSlv = g_Contacts->Cyls[i]->SlaveMask[tid];
@@ -1069,10 +1071,10 @@ if (tid < c_NumNodes)
    }
    else if ( (Mask.x == 1)||(Mask.y == 1)||(Mask.z == 1) )
    {
-      float4 Uload = tex1Dfetch(txUload,tid);
-      float4 Ucurr = tex1Dfetch(txUcurr,tid);
-      float4 Uprev = tex1Dfetch(txUprev,tid);
-      float M = tex1Dfetch(txMfc,tid);
+      float4 Uload = tledTexFetch<float4>(txUload,tid);
+      float4 Ucurr = tledTexFetch<float4>(txUcurr,tid);
+      float4 Uprev = tledTexFetch<float4>(txUprev,tid);
+      float M = tledTexFetch<float>(txMfc,tid);
       
       if (Mask.x == 1)
          g_f[3*tid] = (Uload.x - c_gamma.y*Ucurr.x - c_gamma.z*Uprev.x)*M/c_gamma.x;
@@ -1110,13 +1112,13 @@ if (tid < c_NumNodes)
    tempF4.z = g_UnextV[3*tid+2];
    float4 Unext = (c_gamma.x)*tempF4;
    // Add Ucurr term
-   tempF4 = tex1Dfetch(txUcurr,tid);
+   tempF4 = tledTexFetch<float4>(txUcurr,tid);
    Unext = Unext + (c_gamma.y)*tempF4;
    // Add Uprev term
-   tempF4 = tex1Dfetch(txUprev,tid);
+   tempF4 = tledTexFetch<float4>(txUprev,tid);
    Unext = Unext + (c_gamma.z)*tempF4;
    // Get constraints
-   int4 Mask = tex1Dfetch(txFixMask,tid);
+   int4 Mask = tledTexFetch<int4>(txFixMask,tid);
    Unext = Unext*Mask;
 
    // FixMask (FM) is a binary mask indicating fixed DOFs
@@ -1140,7 +1142,7 @@ if (tid < c_NumEls)
 {
    // Element strain energy = (1/2) * int_V {Dot(Ev,Sv)} dV = (1/2) * V * Dot(Ev,Sv)
    
-   float4 Vol_MType_K = tex1Dfetch(txVol_MType_K,tid);
+   float4 Vol_MType_K = tledTexFetch<float4>(txVol_MType_K,tid);
    // Get first 1/2 of stress and strain vectors
    // Stresses
    float4 Sv = g_SPKa[tid];
@@ -1164,28 +1166,28 @@ __global__ void ComputeElementStressT4_kernel(float4* g_StressStateIso, float4* 
    const unsigned int tid = blockIdx.x*blockDim.x + threadIdx.x;
 if (tid < c_NumEls)
 {
-   float4 Vol_MType_K = tex1Dfetch(txVol_MType_K,tid);
+   float4 Vol_MType_K = tledTexFetch<float4>(txVol_MType_K,tid);
    // Shape function derivatives
    float Dh[4][3];
    float4 tempF4;
-   tempF4 = tex1Dfetch(txDhDx,3*tid);
+   tempF4 = tledTexFetch<float4>(txDhDx,3*tid);
    Dh[0][0] = tempF4.x; Dh[1][0] = tempF4.y; Dh[2][0] = tempF4.z; Dh[3][0] = tempF4.w;
-   tempF4 = tex1Dfetch(txDhDx,3*tid + 1);
+   tempF4 = tledTexFetch<float4>(txDhDx,3*tid + 1);
    Dh[0][1] = tempF4.x; Dh[1][1] = tempF4.y; Dh[2][1] = tempF4.z; Dh[3][1] = tempF4.w;
-   tempF4 = tex1Dfetch(txDhDx,3*tid + 2);
+   tempF4 = tledTexFetch<float4>(txDhDx,3*tid + 2);
    Dh[0][2] = tempF4.x; Dh[1][2] = tempF4.y; Dh[2][2] = tempF4.z; Dh[3][2] = tempF4.w;
 
    // Displacements
    float u[4][3];
    int4 EInd;
-   EInd = tex1Dfetch(txEInd,tid);
-   tempF4 = tex1Dfetch(txUcurr,EInd.x);
+   EInd = tledTexFetch<int4>(txEInd,tid);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.x);
    u[0][0] = tempF4.x; u[0][1] = tempF4.y; u[0][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.y);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.y);
    u[1][0] = tempF4.x; u[1][1] = tempF4.y; u[1][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.z);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.z);
    u[2][0] = tempF4.x; u[2][1] = tempF4.y; u[2][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.w);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.w);
    u[3][0] = tempF4.x; u[3][1] = tempF4.y; u[3][2] = tempF4.z;
 
    // Deformation gradient (transpose of), X = Du + I, Du = u^T*Dh
@@ -1262,45 +1264,45 @@ __global__ void ComputeElementStressH8_kernel(float4* g_StressStateIso, float4* 
    const unsigned int tid = blockIdx.x*blockDim.x + threadIdx.x;
 if (tid < c_NumEls)
 {
-   float4 Vol_MType_K = tex1Dfetch(txVol_MType_K,tid);
+   float4 Vol_MType_K = tledTexFetch<float4>(txVol_MType_K,tid);
    // Shape function derivatives
    float Dh[8][3];
    float4 tempF4;
-   tempF4 = tex1Dfetch(txDhDx,6*tid);
+   tempF4 = tledTexFetch<float4>(txDhDx,6*tid);
    Dh[0][0] = tempF4.x; Dh[1][0] = tempF4.y; Dh[2][0] = tempF4.z; Dh[3][0] = tempF4.w;
-   tempF4 = tex1Dfetch(txDhDx,6*tid + 1);
+   tempF4 = tledTexFetch<float4>(txDhDx,6*tid + 1);
    Dh[0][1] = tempF4.x; Dh[1][1] = tempF4.y; Dh[2][1] = tempF4.z; Dh[3][1] = tempF4.w;
-   tempF4 = tex1Dfetch(txDhDx,6*tid + 2);
+   tempF4 = tledTexFetch<float4>(txDhDx,6*tid + 2);
    Dh[0][2] = tempF4.x; Dh[1][2] = tempF4.y; Dh[2][2] = tempF4.z; Dh[3][2] = tempF4.w;
 
-   tempF4 = tex1Dfetch(txDhDx,6*tid + 3);
+   tempF4 = tledTexFetch<float4>(txDhDx,6*tid + 3);
    Dh[4][0] = tempF4.x; Dh[5][0] = tempF4.y; Dh[6][0] = tempF4.z; Dh[7][0] = tempF4.w;
-   tempF4 = tex1Dfetch(txDhDx,6*tid + 4);
+   tempF4 = tledTexFetch<float4>(txDhDx,6*tid + 4);
    Dh[4][1] = tempF4.x; Dh[5][1] = tempF4.y; Dh[6][1] = tempF4.z; Dh[7][1] = tempF4.w;
-   tempF4 = tex1Dfetch(txDhDx,6*tid + 5);
+   tempF4 = tledTexFetch<float4>(txDhDx,6*tid + 5);
    Dh[4][2] = tempF4.x; Dh[5][2] = tempF4.y; Dh[6][2] = tempF4.z; Dh[7][2] = tempF4.w;
 
    // Displacements
    float u[8][3];
    int4 EInd;
-   EInd = tex1Dfetch(txEInd,2*tid);
-   tempF4 = tex1Dfetch(txUcurr,EInd.x);
+   EInd = tledTexFetch<int4>(txEInd,2*tid);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.x);
    u[0][0] = tempF4.x; u[0][1] = tempF4.y; u[0][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.y);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.y);
    u[1][0] = tempF4.x; u[1][1] = tempF4.y; u[1][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.z);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.z);
    u[2][0] = tempF4.x; u[2][1] = tempF4.y; u[2][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.w);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.w);
    u[3][0] = tempF4.x; u[3][1] = tempF4.y; u[3][2] = tempF4.z;
 
-   EInd = tex1Dfetch(txEInd,2*tid+1);
-   tempF4 = tex1Dfetch(txUcurr,EInd.x);
+   EInd = tledTexFetch<int4>(txEInd,2*tid+1);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.x);
    u[4][0] = tempF4.x; u[4][1] = tempF4.y; u[4][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.y);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.y);
    u[5][0] = tempF4.x; u[5][1] = tempF4.y; u[5][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.z);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.z);
    u[6][0] = tempF4.x; u[6][1] = tempF4.y; u[6][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.w);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.w);
    u[7][0] = tempF4.x; u[7][1] = tempF4.y; u[7][2] = tempF4.z;
 
    // // Deformation gradient (transpose of), X = Du + I, Du = u^T*Dh
@@ -1377,28 +1379,28 @@ __global__ void ComputeModifiedElementStressT4ANP_kernel(float4* g_StressStateIs
    const unsigned int tid = blockIdx.x*blockDim.x + threadIdx.x;
 if (tid < c_NumEls)
 {
-   float4 Vol_MType_K = tex1Dfetch(txVol_MType_K,tid);	// Vol = Vol_MType_K.x, MType = Vol_MType_K.y, K = Vol_MType_K.z
+   float4 Vol_MType_K = tledTexFetch<float4>(txVol_MType_K,tid);	// Vol = Vol_MType_K.x, MType = Vol_MType_K.y, K = Vol_MType_K.z
    // Shape function derivatives
    float Dh[4][3];
    float4 tempF4;
-   tempF4 = tex1Dfetch(txDhDx,3*tid);
+   tempF4 = tledTexFetch<float4>(txDhDx,3*tid);
    Dh[0][0] = tempF4.x; Dh[1][0] = tempF4.y; Dh[2][0] = tempF4.z; Dh[3][0] = tempF4.w;
-   tempF4 = tex1Dfetch(txDhDx,3*tid + 1);
+   tempF4 = tledTexFetch<float4>(txDhDx,3*tid + 1);
    Dh[0][1] = tempF4.x; Dh[1][1] = tempF4.y; Dh[2][1] = tempF4.z; Dh[3][1] = tempF4.w;
-   tempF4 = tex1Dfetch(txDhDx,3*tid + 2);
+   tempF4 = tledTexFetch<float4>(txDhDx,3*tid + 2);
    Dh[0][2] = tempF4.x; Dh[1][2] = tempF4.y; Dh[2][2] = tempF4.z; Dh[3][2] = tempF4.w;
 
    // Displacements
    float u[4][3];
    int4 EInd;
-   EInd = tex1Dfetch(txEInd,tid);
-   tempF4 = tex1Dfetch(txUcurr,EInd.x);
+   EInd = tledTexFetch<int4>(txEInd,tid);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.x);
    u[0][0] = tempF4.x; u[0][1] = tempF4.y; u[0][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.y);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.y);
    u[1][0] = tempF4.x; u[1][1] = tempF4.y; u[1][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.z);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.z);
    u[2][0] = tempF4.x; u[2][1] = tempF4.y; u[2][2] = tempF4.z;
-   tempF4 = tex1Dfetch(txUcurr,EInd.w);
+   tempF4 = tledTexFetch<float4>(txUcurr,EInd.w);
    u[3][0] = tempF4.x; u[3][1] = tempF4.y; u[3][2] = tempF4.z;
 
    // Deformation gradient (transpose of), X = Du + I, Du = u^T*Dh
@@ -1418,10 +1420,10 @@ if (tid < c_NumEls)
 
    // Compute modified pressure
    float Pm = 0.0f;
-   Pm += tex1Dfetch(txPa,EInd.x);
-   Pm += tex1Dfetch(txPa,EInd.y);
-   Pm += tex1Dfetch(txPa,EInd.z);
-   Pm += tex1Dfetch(txPa,EInd.w);
+   Pm += tledTexFetch<float>(txPa,EInd.x);
+   Pm += tledTexFetch<float>(txPa,EInd.y);
+   Pm += tledTexFetch<float>(txPa,EInd.z);
+   Pm += tledTexFetch<float>(txPa,EInd.w);
    Pm /= 16;
 
    // Compute modified Jacobian

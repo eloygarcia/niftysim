@@ -358,6 +358,9 @@ ELSE(USE_CUDA)
       tledGeometricSelfCollisionBVHUpdater
       tledGeometricSelfCollisionBVHUpdaterCPU
       tledGreedySelfCollisionBVHUpdater
+
+      ## Compatibility with texture objects
+      tledTextureCompatibility
   )
 ENDIF(USE_CUDA)
 
@@ -472,6 +475,13 @@ IF(USE_VIZ)
     ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
   )
 ENDIF(USE_VIZ)
+
+target_compile_definitions(
+    tled
+    PRIVATE
+    $<$<BOOL:${TLED_USE_TEXTURE_OBJECTS}>:
+      TLED_USE_TEXTURE_OBJECTS>
+)
 
 #-----------------------------------------------------------------------------
 ## EXECUTABLES
