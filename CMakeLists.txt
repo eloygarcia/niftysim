@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.10)
 PROJECT(nifty_sim)
 
 #-----------------------------------------------------------------------------
@@ -29,10 +29,11 @@ OPTION(USE_CUDA "Build GPU solver code (requires CUDA)" OFF)
 OPTION(USE_VIZ "Build visualisation classes (requires VTK)" OFF)
 OPTION(USE_BOOST "Build with Boost support, required CPU parallel execution" OFF)
 OPTION(USE_NAMESPACE_STD "Enables using namespace std directive in tledSimulator header. Deprecated and may be disabled by default in future releases." ON)
+
 OPTION(BUILD_DOXYGEN_DOCS "Create Doxygen API documentation (requires doxygen)" OFF)
 OPTION(BUILD_NIFTYSIM_TESTS "Build unit tests" OFF)
 
-option(TLED_USE_TEXTURE_OBJECTS "Use CUDA texture objects" OFF)
+option(TLED_USE_TEXTURE_OBJECTS "Use CUDA texture objects for CUDA>11.9" ON)
 
 IF (USE_CUDA) 
   OPTION(USE_GPU_GP_CONTACT "Use general-purpose CUDA contact modelling code (requires a CUDA device with Fermi architecture or newer, CUDA toolkit version >= 4.2). Please set NIFTYSIM_CUDA_{ARCH,CODE} according to your hardware." OFF)   
@@ -140,6 +141,10 @@ IF (USE_GPU_GP_CONTACT)
     SET(NIFTYSIM_CUDA_CODE "sm_86" CACHE STRING "GPU back-end target")
     SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-gencode=arch=${NIFTYSIM_CUDA_ARCH},code=${NIFTYSIM_CUDA_CODE};-D_USE_THRUST_;-D_USE_CUDA_ATOMICS;-DGPU_GP_CONTACT")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGPU_GP_CONTACT") 
+
+    set_target_properties(PROPERTIES
+    CUDA_SEPARABLE_COMPILATION ON
+)
 ENDIF (USE_GPU_GP_CONTACT)
 
 #-----------------------------------------------------------------------------

@@ -193,10 +193,11 @@ IF(USE_CUDA)
 	tledDeformableRigidBVHTraverserGPU
 
 	tledSelfCollisionBVHGPU
-	tledDynamicBVHGPU
+	# tledDynamicBVHGPU
 	)
 
       LIST(APPEND CUDA_SOURCE_FILES_WITH_HEADERS 
+
 	tledContactSurfaceGPU
 	tledRigidContactSurfaceGPU
 	tledMovingRigidContactSurfaceGPU
@@ -205,6 +206,8 @@ IF(USE_CUDA)
 	tledBVHGPU
 	tledStaticBVHGPU
 	tledNarrowConeSelfCollisionBVHGPU
+
+  tledDynamicBVHGPU
 	)
     ENDIF (USE_GPU_GP_CONTACT)
 

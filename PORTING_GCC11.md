@@ -1,4 +1,18 @@
-## CPP compatibility: From GCC11 to GCC17
+## C++ compatibility: From GCC11 to GCC17
+
+## Current validated environment (2026-11-04)
+
+- OS: Ubuntu 24.04
+- C++ compiler: GCC/G++ 13.3.0
+- CMake: 3.28.3
+- CUDA Toolkit: 12.6.1
+
+Notes:
+- This document keeps the original migration history (GCC11/VTK9) and extends it
+  with the CUDA modernization that was applied afterwards.
+- The current [Dockerfile](./Dockerfile) still reflects an older base
+  (Ubuntu 20.04, CUDA 11.7.1, VTK 8.2) and should not be considered the current
+  validated runtime baseline.
 
 Patch 001
 ----------
@@ -49,27 +63,27 @@ Patch 003
 ---------
 File: ./CMakeLists.txt
 From Line: 85  to line: 187 (after: SUBDIRS(source))
-Issue: Niftysim test are compiled before compiling the main application
-Fix: Realocate IF (BUILD_NIFTYSIM_TESTS) .. ENDIF()
+Issue: NiftySim tests are compiled before the main application.
+Fix: Relocate `IF (BUILD_NIFTYSIM_TESTS) .. ENDIF()`.
 
 Patch 004
 ---------
 File: ./CMakeLists.txt
 From Line: 110 to line: 128
-Reason: Revome compatibility with CUDA<5.0 in IF(USE_CUDA) .. ENDIF()
+Reason: Remove compatibility with CUDA<5.0 in `IF(USE_CUDA) .. ENDIF()`.
 
 Patch 005
 ---------
 File: ./CMakeLists.txt
 From Line: 138 to line: 147
-Reason: Revome Error Message CUDA<4.2 in IF(USE_GPU_GP_CONTACT) .. ENDIF()
+Reason: Remove error message for CUDA<4.2 in `IF(USE_GPU_GP_CONTACT) .. ENDIF()`.
 
 Patch 006
 ---------
 File: ./CMakeLists.txt
 From Line:  56 to line: 66
 Reason: Updating CMake files to make them compatible with VTK9
-TODO: Upadate $VTK_DIR
+TODO: Update `$VTK_DIR`.
 
 Old code: vtk==8.2
     IF(USE_VIZ)
@@ -115,7 +129,7 @@ Patch 007
 File: ./source/CMakeLists.txt
 From Line: 427 to line: 474
 Reason: Updating CMake files to make them compatible with VTK9
-TODO: Upadate $VTK_DIR
+TODO: Update `$VTK_DIR`.
 
 Old code: 
     IF(USE_VIZ)
@@ -202,7 +216,7 @@ Patch 008
 File: ./testing/CMakeLists.txt
 From Line: 55 to line: 69
 Reason: Updating CMake files to make them compatible with VTK9
-TODO: Upadate $VTK_DIR
+TODO: Update `$VTK_DIR`.
 
 Old code:
     FOREACH (TEST ${NO_VTK_TESTS}) 
@@ -221,7 +235,7 @@ Old code:
         ADD_TEST(NAME ${TESTNAME} COMMAND ${TEST})
     ENDFOREACH (TEST) 
 
-Current Code:
+Current code:
     FOREACH (TEST ${NO_VTK_TESTS}) 
         IF (USE_CUDA)
             CUDA_ADD_EXECUTABLE(${TEST} ${TEST}.cpp)
@@ -249,7 +263,7 @@ Patch 009
 File: ./testing/testVTKMeshExporter.cpp
 Line: 129 & 141
 Error:  error: 'class vtkFloatArray' has no member named 'GetTupleValue'
-Fix: Replace GetTupleValue by GetTuple
+Fix: Replace `GetTupleValue` with `GetTuple`.
 
 Old code:
     p_array->GetTupleValue(vInd, tmpTuple);
@@ -261,7 +275,7 @@ Patch 010
 ---------
 File: ./CMakeLists.txt
 Line: 66 (Within IF(USE_VIZ) .. ENDIF())
-Reason: Updating $VTK_DIR in CMake files to make them compatible with VTK9
+Reason: Update `$VTK_DIR` in CMake files to make them compatible with VTK9.
 Include:
 
  get_target_property(
@@ -281,7 +295,7 @@ Patch 011
 ---------
 File: ./testing/CMakeLists.txt
 Line: 67
-Reason: Updating $VTK_DIR in CMake files to make them compatible with VTK9
+Reason: Update `$VTK_DIR` in CMake files to make them compatible with VTK9.
 Modify:
 
     target_include_directories(unitTests
@@ -296,11 +310,11 @@ by:
          ${NIFTYSIM_VTK_INCLUDE_DIR}
     )
 
-Patch 12
+Patch 012
 ---------
 File: ./source/CMakeLists.txt
 Line: 454
-Reason: Updating $VTK_DIR in CMake files to make them compatible with VTK9
+Reason: Update `$VTK_DIR` in CMake files to make them compatible with VTK9.
 Modify:
 
     target_include_directories(tled
@@ -317,18 +331,18 @@ by:
 
 ## CUDA
 
-Patch 13
+Patch 013
 ---------
 File: ./CMakeLists.txt
 Line: 47
-Reason: Remove warning incompatiblities between CUDA and VTK
+Reason: Remove warning incompatibilities between CUDA and VTK.
 Old code:
     IF (USE_CUDA AND USE_VIZ)
         # The standard FindCUDA.cmake shipping with all versions up to and including 3.1 is broken when used in conjunction with VTK >= 6.0
         SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH}")
     ENDIF (USE_CUDA AND USE_VIZ)
 
-Patch 14
+Patch 014
 ---------
 File: ./CMakeLists.txt
 Line: 119-120
@@ -338,7 +352,7 @@ Comment: lines
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_CUDA_5PLUS_SDK")     
 
 
-Patch 15
+Patch 015
 ---------
 File: ./source/tledCUDAHelpers.h
 Lines: 68-72
@@ -350,9 +364,9 @@ Comment:
     #define tledCheckCUDAErrors(expr) checkCudaErrors(expr)
     // #endif
 
-Patch 16
+Patch 016
 ---------
-File./source/niftysim.cpp
+File: ./source/niftysim.cpp
 Lines: 129-138
 Reason: Remove compatibility with cuda <5
 Comment:
@@ -367,41 +381,41 @@ Comment:
     cudaSetDevice(inParams->cudaDeviceId);   
     #endif
 
-Patch 17
+Patch 017
 ---------
-File./source/tledCUDA_operators.h
+File: ./source/tledCUDA_operators.h
 Lines: 4-6
 Reason: Remove compatibility with cuda <5
 Fix: Comment flag _CUDA_5PLUS_SDK  
 TODO: Remove
 
-Patch 18
+Patch 018
 ---------
-File./source/tledCUDA_operators.h
+File: ./source/tledCUDA_operators.h
 Lines: Multiple lines
 Reason: Remove compatibility with cuda <5
 Fix: Comment blocks "#ifndef _CUDA_5PLUS_SDK .. #endif" in lines: 20-25, 36-39, 69-74
 TODO: Remove
 
-Patch 19
+Patch 019
 ---------
-File./source/tledCUDA_operators.cu
+File: ./source/tledCUDA_operators.cu
 Lines: 20-22
 Reason: Remove compatibility with cuda <5
 Fix: Comment flag _CUDA_5PLUS_SDK  
 TODO: Remove
 
-Patch 20
+Patch 020
 ---------
-File./source/tledCUDA_operators.h
+File: ./source/tledCUDA_operators.h
 Lines: Multiple lines
 Reason: Remove compatibility with cuda <5
 Fix: Comment blocks "#ifndef _CUDA_5PLUS_SDK .. #endif" in lines: 25-30, 40-50, 62-82, 85-98, 112-127, 144-149, 157-172, 181-194, 197-208, 211-233, 247-252, 267-279, 302-316, 330-334
 TODO: Remove
 
-Patch 21
+Patch 021
 ---------
-File./testing/helpers/tledCUDAUnitTest.h
+File: ./testing/helpers/tledCUDAUnitTest.h
 Lines: 22-26
 Reason: Remove compatibility with cuda <5
 Fix: Comment flag _CUDA_5PLUS_SDK  
@@ -413,9 +427,150 @@ Fix: Comment flag _CUDA_5PLUS_SDK
 TODO: Remove
 
 
-Patch 14
+Patch 022
 ---------
 File: ./CMakeLists.txt
 From Line: 120 to line: 145
 Reason: Update CMake file to modern CUDA
 
+Fix summary:
+- Keep CUDA support via:
+  - `enable_language(CUDA)`
+  - `find_package(CUDA REQUIRED)`
+  - include `${CUDA_INCLUDE_DIRS}` and `${CUDA_SDK_COMMON_INCLUDE_DIR}`
+- Set target architecture explicitly:
+  - `set(CMAKE_CUDA_ARCHITECTURES 86)`
+- Keep GPU define propagation:
+  - `SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-D_GPU_")`
+  - `SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GPU_")`
+
+
+Patch 023
+---------
+File: ./CMakeLists.txt
+Line: 35
+Reason: Introduce explicit switch for modern texture API path.
+
+Add:
+    option(TLED_USE_TEXTURE_OBJECTS "Use CUDA texture objects" OFF)
+
+Comment:
+- Keeps legacy texture references as default for compatibility.
+- Enables progressive migration through a build option.
+
+
+Patch 024
+---------
+File: ./source/CMakeLists.txt
+Lines: CUDA source list and compile definitions
+Reason: Wire texture compatibility wrapper into build system.
+
+Changes:
+1) Add compatibility translation unit to CUDA source list:
+    tledTextureCompatibility
+
+2) Propagate compile definition to target:
+    target_compile_definitions(
+        tled
+        PRIVATE
+        $<$<BOOL:${TLED_USE_TEXTURE_OBJECTS}>:
+          TLED_USE_TEXTURE_OBJECTS>
+    )
+
+
+Patch 025
+---------
+File: ./source/tledTextureCompatibility.h
+Reason: Add a compatibility layer between legacy texture references and CUDA texture objects.
+
+What was added:
+- `tledTexFetch<T>(...)` for:
+  - legacy `texture<T,1,cudaReadModeElementType>`
+  - modern `cudaTextureObject_t`
+- Helpers:
+  - `tled::CreateTextureObject<T>(...)`
+  - `tled::DestroyTextureObject(...)`
+  - `tledBindTexture(...)`
+  - `tledBindTextureSymbol(...)`
+
+Impact:
+- Kernels can read through one API (`tledTexFetch`) regardless of the selected
+  backend.
+- Host code binds texture data through one binding API (`tledBindTexture*`).
+
+
+Patch 026
+---------
+File: ./source/tledDeviceTextures.cu
+Reason: Support both storage models for texture handles.
+
+Changes:
+- Under `#ifndef TLED_USE_TEXTURE_OBJECTS`:
+  - Keep legacy `texture<...>` declarations.
+- Under `#else`:
+  - Define device handles as `__device__ cudaTextureObject_t`.
+
+Impact:
+- Global texture symbols remain available to kernels in both build modes.
+
+
+Patch 027
+---------
+Files:
+- ./source/tledSolverGPU_kernels.cu
+- ./source/tledSolverGPU_ROM_kernels.cu
+- ./source/tledShellSolver_kernels.cu
+- ./source/tledNewmarkTimeStepperGPU_kernels.cu
+- ./source/tledCentralDifferenceTimeStepperGPU_kernels.cu
+Reason: Remove direct dependency on legacy texture fetch syntax in kernels.
+
+Changes:
+- Include `tledTextureCompatibility.h`.
+- Replace direct `tex1Dfetch(...)` use with `tledTexFetch<T>(...)`.
+- Keep symbol declarations dual-path with `#ifndef TLED_USE_TEXTURE_OBJECTS`.
+
+Impact:
+- Same kernel code compiles for both legacy texture references and texture objects.
+
+
+Patch 028
+---------
+Files:
+- ./source/tledSolverGPU.cu
+- ./source/tledSolverGPU_ROM.cu
+- ./source/tledShellSolverGPU.cu
+- ./source/tledTimeStepperGPU.cu
+- ./source/tledNewmarkTimeStepperGPU.cu
+- ./source/tledCentralDifferenceTimeStepperGPU.cu
+Reason: Modernize host-side texture binding calls.
+
+Changes:
+- Replace direct `cudaBindTexture(...)` call sites with:
+  - `tledBindTextureSymbol(...)` (and compatibility bind helpers)
+- Keep `cudaMemcpyToSymbol(...)` for non-texture constant data.
+
+Impact:
+- Binding logic becomes backend-agnostic and supports modern CUDA APIs.
+
+
+Patch 029
+---------
+File: ./source/tledSurfaceTopology.tpp
+Reason: Auxiliary compatibility cleanup required by the CUDA modernization commit.
+
+Comment:
+- Small adjustment included in the same migration set; no API or behavior change
+  intended at solver level.
+
+
+Patch 030
+---------
+Scope: Migration checkpoint closure
+Reason: Complete documentation for the commit:
+`ad5ddd7 - ubuntu 22.04, vtk 9.1, cuda 12.2`
+
+This patch closes the gap left after Patch 21 and documents the previously
+undocumented texture-object compatibility migration centered on:
+- `tledTextureCompatibility.h`
+- dual texture declarations in device symbols
+- wrapper-based binding/fetch in host and kernels
